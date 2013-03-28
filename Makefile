@@ -3,9 +3,14 @@ CC      = g++
 CFLAGS  = -g3
 
 FILES    = $(ROOT)/organism/organism.cpp
+FILES   += $(ROOT)/helpers/messenger.cpp
 FILES   += $(ROOT)/organism/main.cpp
 
-INCLUDE = $(ROOT)/organism/organism.h
+HEADERS  = $(ROOT)/organism/organism.h
+HEADERS += $(ROOT)/helpers/messenger.h
+
+INCLUDE  = -I$(ROOT)/organism/
+INCLUDE  = -I$(ROOT)/helpers/
 
 all: mkdir organism
 
@@ -14,7 +19,8 @@ mkdir:
 	test -d ./results || mkdir ./results
 
 organism: mkdir
-	$(CC) $(CFLAGS) $(FILES) -o ./build/organism.bin $(INCLUDE) $(LIBS)
+	$(CC) $(CFLAGS) $(FILES) -o ./build/organism.bin $(HEADERS) $(INCLUDE) $(LIBS)
+	./build/organism.bin
 
 clean:
 	rm -rf *.o  ./build
