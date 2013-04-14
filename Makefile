@@ -1,4 +1,4 @@
-ROOT    = /home/janisknets/Projects/bakdarbs/src
+ROOT    = ./src
 CC      = g++
 CFLAGS  = -g3
 

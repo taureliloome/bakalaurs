@@ -1,3 +1,14 @@
+/**
+ *  @author    Jānis Knets
+ *  @version   0.1
+ *  @date      2013-03-27
+ *  @copyright GNU Public License.
+ *
+ *  @brief     Organism class.
+ *  @details   This class is used to create and launch a new instance of organism
+ *              that will attempt to solve the given problem.
+ * */
+
 #ifndef _ORGANISM_H_
 #define _ORGANISM_H_
 

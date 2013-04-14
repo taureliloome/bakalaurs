@@ -1,3 +1,18 @@
+/**
+ *  @author    Jānis Knets
+ *  @version   0.1
+ *  @date      2013-04-14
+ *  @copyright GNU Public License.
+ *
+ *  @brief     Organism main.
+ *  @details   This is used to determine the range of correct answer from accepted scope.
+ *             Gives the marks and promotes organisms to next generation.
+ *  @author    Jānis Knets
+ *  @version   0.1
+ *  @date      2013-04-14
+ *  @copyright GNU Public License.
+ * */
+
 #include <stdio.h>
 #include "organism.h"
 using namespace std;
