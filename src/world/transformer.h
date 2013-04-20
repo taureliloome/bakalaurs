@@ -17,13 +17,21 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include "messenger.h"
 
+typedef struct nucleotide_s{
+    char name[29];
+    unsigned int id;
+    size_t len;
+    void *data;
+}nucleotide_t;
 
-class Transformer {
+class Transformer: Messenger{
     File inFile;
 public:
     Transformer();
     Transformer(static String input);
+    Transformer(static char *input, msg_severity_t msg_lvl);
     ~Transformer();
 };
 
