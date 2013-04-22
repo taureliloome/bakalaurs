@@ -16,13 +16,14 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+using namespace std;
 
 
 class Analyzer {
-    File inFile;
+    FILE *inFile;
 public:
     Analyzer();
-    Analyzer(static String input);
+    Analyzer(const string input);
     ~Analyzer();
 private:
     void findBlock();

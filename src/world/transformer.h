@@ -18,6 +18,7 @@
 #include <string>
 #include <iostream>
 #include "messenger.h"
+using namespace std;
 
 typedef struct nucleotide_s{
     char name[29];
@@ -27,12 +28,13 @@ typedef struct nucleotide_s{
 }nucleotide_t;
 
 class Transformer: Messenger{
-    File inFile;
+    FILE *inFile;
 public:
     Transformer();
-    Transformer(static String input);
-    Transformer(static char *input, msg_severity_t msg_lvl);
+    Transformer(const string input);
+    Transformer(const char *input, msg_severity_t msg_lvl);
     ~Transformer();
+    void transform();
 };
 
 #endif /* _TRANSFORMER_H_ */

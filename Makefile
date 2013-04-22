@@ -1,16 +1,40 @@
-ROOT    = ./src
+ROOT    = src
 CC      = g++
 CFLAGS  = -g3
 
-FILES    = $(ROOT)/organism/organism.cpp
-FILES   += $(ROOT)/helpers/messenger.cpp
-FILES   += $(ROOT)/organism/main.cpp
+#ORGANISM FILES
+ORGANISM_CPP  = $(ROOT)/organism/organism.cpp
+ORGANISM_CPP += $(ROOT)/helpers/messenger.cpp
+ORGANISM_CPP += $(ROOT)/organism/main.cpp
 
-HEADERS  = $(ROOT)/organism/organism.h
-HEADERS += $(ROOT)/helpers/messenger.h
+ORGANISM_H  = $(ROOT)/organism/organism.h
+ORGANISM_H += $(ROOT)/helpers/messenger.h
 
+
+#WORLD FILES
+WORLD_CPP  = $(ROOT)/world/analyzer.cpp
+WORLD_CPP += $(ROOT)/world/caregiver.cpp
+WORLD_CPP += $(ROOT)/world/judge.cpp
+WORLD_CPP += $(ROOT)/world/mutator.cpp
+WORLD_CPP += $(ROOT)/world/primal.cpp
+WORLD_CPP += $(ROOT)/world/transformer.cpp
+WORLD_CPP += $(ROOT)/world/watchdog.cpp
+WORLD_CPP += $(ROOT)/world/main.cpp
+WORLD_CPP += $(ROOT)/helpers/messenger.cpp
+
+WORLD_H  = $(ROOT)/world/analyzer.h
+WORLD_H += $(ROOT)/world/caregiver.h
+WORLD_H += $(ROOT)/world/judge.h
+WORLD_H += $(ROOT)/world/mutator.h
+WORLD_H += $(ROOT)/world/primal.h
+WORLD_H += $(ROOT)/world/transformer.h
+WORLD_H += $(ROOT)/world/watchdog.h
+WORLD_H += $(ROOT)/helpers/messenger.h
+
+#FOLDERS WITH HEADERS
 INCLUDE  = -I$(ROOT)/organism/
-INCLUDE  = -I$(ROOT)/helpers/
+INCLUDE  += -I$(ROOT)/helpers/
+INCLUDE  += -I$(ROOT)/world/
 
 all: mkdir organism
 
@@ -19,8 +43,12 @@ mkdir:
 	test -d ./results || mkdir ./results
 
 organism: mkdir
-	$(CC) $(CFLAGS) $(FILES) -o ./build/organism.bin $(HEADERS) $(INCLUDE) $(LIBS)
+	$(CC) $(CFLAGS) $(ORGANISM_CPP) -o ./build/organism.bin $(ORGANISM_H) $(INCLUDE) $(LIBS)
 	./build/organism.bin
+	
+world: mkdir
+	$(CC) $(CFLAGS) $(WORLD_CPP) -o ./build/world.bin $(WORLD_H) $(INCLUDE) $(LIBS)
+	./build/world.bin
 
 clean:
 	rm -rf *.o  ./build

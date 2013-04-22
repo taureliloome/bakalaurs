@@ -4,12 +4,12 @@ Judge::Judge(){
 
 }
 
-Judge::Judge(static String input){
+Judge::Judge(const string input){
     inFile = fopen(input.c_str(),"r+");
 }
 
 Judge::~Judge(){
-    if (inFile.is_open()) {
+    if (inFile && feof(inFile)) {
         fclose(inFile);
     }
 }

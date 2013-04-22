@@ -16,13 +16,14 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+using namespace std;
 
 
 class Watchdog{
-    File inFile;
+    FILE *inFile;
 public:
     Watchdog();
-    Watchdog(static String input);
+    Watchdog(const string input);
     ~Watchdog();
 };
 

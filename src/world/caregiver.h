@@ -17,13 +17,14 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+using namespace std;
 
 
 class Caregiver{
-    File inFile;
+    FILE *inFile;
 public:
     Caregiver();
-    Caregiver(static String input);
+    Caregiver(const string input);
     ~Caregiver();
 };
 

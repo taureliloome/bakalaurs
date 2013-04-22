@@ -4,12 +4,12 @@ Mutator::Mutator(){
 
 }
 
-Mutator::Mutator(static String input){
+Mutator::Mutator(const string input){
     inFile = fopen(input.c_str(),"r+");
 }
 
 Mutator::~Mutator(){
-    if (inFile.is_open()) {
+    if (inFile && feof(inFile)) {
         fclose(inFile);
     }
 }

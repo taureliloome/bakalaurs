@@ -16,12 +16,13 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+using namespace std;
 
 class Judge {
-    File inFile;
+    FILE *inFile;
 public:
     Judge();
-    Judge(static String input);
+    Judge(const string input);
     ~Judge();
 };
 

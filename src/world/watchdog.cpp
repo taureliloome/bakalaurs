@@ -4,12 +4,12 @@ Watchdog::Watchdog(){
 
 }
 
-Watchdog::Watchdog(static String input){
+Watchdog::Watchdog(const string input){
     inFile = fopen(input.c_str(),"r+");
 }
 
 Watchdog::~Watchdog(){
-    if (inFile.is_open()) {
+    if (feof(inFile)) {
         fclose(inFile);
     }
 }

@@ -4,12 +4,12 @@ Caregiver::Caregiver(){
 
 }
 
-Caregiver::Caregiver(static String input){
+Caregiver::Caregiver(const string input){
     inFile = fopen(input.c_str(),"r+");
 }
 
 Caregiver::~Caregiver(){
-    if (inFile.is_open()) {
+    if (inFile && feof(inFile)) {
         fclose(inFile);
     }
 }

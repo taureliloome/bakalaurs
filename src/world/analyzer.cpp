@@ -4,12 +4,12 @@ Analyzer::Analyzer(){
 
 }
 
-Analyzer::Analyzer(static String input){
+Analyzer::Analyzer(const string input){
     inFile = fopen(input.c_str(),"r+");
 }
 
 Analyzer::~Analyzer(){
-    if (inFile.is_open()) {
+    if (inFile && feof(inFile)) {
         fclose(inFile);
     }
 }

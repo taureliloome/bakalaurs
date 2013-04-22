@@ -4,12 +4,12 @@ Primal::Primal(){
 
 }
 
-Primal::Primal(static String input){
+Primal::Primal(const string input){
     inFile = fopen(input.c_str(),"r+");
 }
 
 Primal::~Primal(){
-    if (inFile.is_open()) {
+    if (inFile && feof(inFile)) {
         fclose(inFile);
     }
 }

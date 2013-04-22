@@ -16,13 +16,14 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+using namespace std;
 
 
 class Mutator {
-    File inFile;
+    FILE *inFile;
 public:
     Mutator();
-    Mutator(static String input);
+    Mutator(const string input);
     ~Mutator();
 };
 
