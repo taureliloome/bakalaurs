@@ -48,7 +48,7 @@ organism: mkdir
 	
 world: mkdir
 	$(CC) $(CFLAGS) $(WORLD_CPP) -o ./build/world.bin $(WORLD_H) $(INCLUDE) $(LIBS)
-	./build/world.bin
+	./build/worldjhs.bin
 
 clean:
 	rm -rf *.o  ./build
