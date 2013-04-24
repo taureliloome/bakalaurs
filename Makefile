@@ -4,11 +4,11 @@ CFLAGS  = -g3
 
 #ORGANISM FILES
 ORGANISM_CPP  = $(ROOT)/organism/organism.cpp
-ORGANISM_CPP += $(ROOT)/helpers/messenger.cpp
+ORGANISM_CPP += $(ROOT)/helpers/messenger/messenger.cpp
 ORGANISM_CPP += $(ROOT)/organism/main.cpp
 
 ORGANISM_H  = $(ROOT)/organism/organism.h
-ORGANISM_H += $(ROOT)/helpers/messenger.h
+ORGANISM_H += $(ROOT)/helpers/messenger/messenger.h
 
 
 #WORLD FILES
@@ -20,7 +20,7 @@ WORLD_CPP += $(ROOT)/world/primal.cpp
 WORLD_CPP += $(ROOT)/world/transformer.cpp
 WORLD_CPP += $(ROOT)/world/watchdog.cpp
 WORLD_CPP += $(ROOT)/world/main.cpp
-WORLD_CPP += $(ROOT)/helpers/messenger.cpp
+WORLD_CPP += $(ROOT)/helpers/messenger/messenger.cpp
 
 WORLD_H  = $(ROOT)/world/analyzer.h
 WORLD_H += $(ROOT)/world/caregiver.h
@@ -29,7 +29,7 @@ WORLD_H += $(ROOT)/world/mutator.h
 WORLD_H += $(ROOT)/world/primal.h
 WORLD_H += $(ROOT)/world/transformer.h
 WORLD_H += $(ROOT)/world/watchdog.h
-WORLD_H += $(ROOT)/helpers/messenger.h
+WORLD_H += $(ROOT)/helpers/messenger/messenger.h
 
 #FOLDERS WITH HEADERS
 INCLUDE  = -I$(ROOT)/organism/
