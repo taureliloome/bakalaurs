@@ -33,10 +33,10 @@ WORLD_H += $(ROOT)/helpers/messenger/messenger.h
 
 #FOLDERS WITH HEADERS
 INCLUDE  = -I$(ROOT)/organism/
-INCLUDE  += -I$(ROOT)/helpers/
+INCLUDE  += -I$(ROOT)/helpers/messenger/
 INCLUDE  += -I$(ROOT)/world/
 
-all: mkdir organism
+all: mkdir organism world
 
 mkdir:
 	test -d ./build || mkdir ./build
