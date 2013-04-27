@@ -1,1 +1,1 @@
-My bachelors paper will be written about this code
+Automatisation of source code analysis
