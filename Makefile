@@ -1,7 +1,8 @@
 ROOT    = src
 CC      = cc
-CPP      = g++
+CPP     = g++
 CFLAGS  = -g3
+VERSION=$(shell git rev-parse HEAD)
 
 #ORGANISM FILES
 ORGANISM_CPP  = $(ROOT)/organism/organism.cpp
@@ -35,8 +36,11 @@ WORLD_H += $(ROOT)/helpers/messenger/messenger.h
 #LEX
 LEX      = $(ROOT)/world/transformer/lex/main.l
 
+#YACC
+YACC	 = $(ROOT)/world/transformer/yacc/main.y
+
 #FOLDERS WITH HEADERS
-INCLUDE  = -I$(ROOT)/organism/
+INCLUDE   = -I$(ROOT)/organism/
 INCLUDE  += -I$(ROOT)/helpers/messenger/
 INCLUDE  += -I$(ROOT)/world/transformer/
 INCLUDE  += -I$(ROOT)/world/
@@ -53,20 +57,34 @@ organism: mkdir
 	
 world: mkdir
 	$(CPP) $(CFLAGS) $(WORLD_CPP) -o ./build/world.bin $(WORLD_H) $(INCLUDE) $(LIBS)
-	./build/worldjhs.bin
+	./build/world.bin
 	
 lex: mkdir
 	flex $(LEX)
-	yacc -d ./src/world/transformer/yacc/main.y
-	$(CC) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE)
+	$(CC) lex.yy.c -o ./build/lexer.bin -ll
 	rm lex.yy.c
+
+
+lex_yacc: mkdir
+	
+	echo "=================================================================="
+	echo "= BUILD                 $(VERSION) ="
+	echo "= TARGET                                                lex_yacc ="
+	echo "=================================================================="
+	flex $(LEX)
+	yacc -d $(YACC)
+	#$(CC) --debug --verbose lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE)
+	$(CC) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE)
+	
+	rm lex.yy.c y.tab.c y.tab.h
+	
 
 clean:
 	rm -rf *.o  ./build
 	rm -rf *.o  ./results
 	
 clean_lex:
-	rm ./build/lexer.bin
+	rm ./build/lexer.bin lex.yy.c y.tab.c y.tab.h
 
-clean_all: clean
+clean_all: clean clean_lex
 	rm -rf *.out *~ 
