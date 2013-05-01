@@ -1,7 +1,7 @@
 #include "transformer.h"
 
 Transformer::Transformer(): Messenger(MSG_INFO) {
-
+    inFile = (void *) 0;
 }
 
 Transformer::Transformer(const string input): Messenger(MSG_INFO) {
