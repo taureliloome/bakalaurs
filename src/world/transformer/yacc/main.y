@@ -37,7 +37,7 @@ main()
 
 %%
 commands: 	| commands command;
-command: 	function | function_call | variable | fork | cycle | include | return | T_SEMICOLON{ printf(";\n"); };
+command: 	include | function | function_call | variable | fork | cycle | return | T_SEMICOLON{ printf(";\n"); };
 variable:	var_def | var_use;
 block:		T_OBRACE commands T_EBRACE | T_SEMICOLON{ printf(";\n"); };
 cycle:		for | while | do_while;
@@ -72,6 +72,13 @@ function_call:
 		{
 			printf("function call\n");
 		}
+		|
+		T_WORD T_OBRACKET T_EBRACKET T_SEMICOLON
+		{
+			printf("function call\n");
+		}
+		;
+		;
 
 statment:
 		T_OBRACKET variable compare variable T_EBRACKET
@@ -88,9 +95,26 @@ include:
 		{
 			printf("local include\n");
 		}
+		|
+		T_INCLUDE T_QUOTE T_WORD T_QUOTE
+		{
+			printf("lib include\n");
+		}
+		|
+		T_INCLUDE T_LT T_WORD T_GT
+		{
+			printf("local include\n");
+		}
 		;
 		
 /* variables */
+words:
+		words T_WORD
+		|
+		T_WORD {
+			printf("word");
+		}
+		;
 var_def:
 		type T_WORD
 		{
@@ -117,9 +141,15 @@ variables:
 		|
 		var_use
 		|
-		T_COMMA T_QUOTE T_WORD T_QUOTE
+		T_QUOTE T_WORD T_QUOTE
 		{
 			printf("char str ");
+		}
+		;
+		|
+		T_QUOTE T_QUOTE
+		{
+			printf("empty char str ");
 		}
 		;
 /* fork */

@@ -34,10 +34,10 @@ WORLD_H += $(ROOT)/world/watchdog.h
 WORLD_H += $(ROOT)/helpers/messenger/messenger.h
 
 #LEX
-LEX      = $(ROOT)/world/transformer/lex/main.l
+LEX      = $(ROOT)/world/transformer/lex/ansi_c.l
 
 #YACC
-YACC	 = $(ROOT)/world/transformer/yacc/main.y
+YACC	 = $(ROOT)/world/transformer/yacc/ansi_c.y
 
 #FOLDERS WITH HEADERS
 INCLUDE   = -I$(ROOT)/organism/
@@ -61,7 +61,7 @@ world: mkdir
 	
 lex: mkdir
 	flex $(LEX)
-	$(CC) lex.yy.c -o ./build/lexer.bin -ll
+	$(CC) lex.yy.c -o ./build/lexer.bin -DLEX -ll
 	rm lex.yy.c
 
 
@@ -74,8 +74,7 @@ lex_yacc: mkdir
 	flex $(LEX)
 	yacc -d $(YACC)
 	#$(CC) --debug --verbose lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE)
-	$(CC) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE)
-	
+	$(CC) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE) -DYACC -lfl
 	rm lex.yy.c y.tab.c y.tab.h
 	
 
