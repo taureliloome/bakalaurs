@@ -1,5 +1,5 @@
 ROOT    = src
-CC      = cc
+CC      = gcc
 CPP     = g++
 CFLAGS  = -g3
 VERSION=$(shell git rev-parse HEAD)
@@ -34,10 +34,10 @@ WORLD_H += $(ROOT)/world/watchdog.h
 WORLD_H += $(ROOT)/helpers/messenger/messenger.h
 
 #LEX
-LEX      = $(ROOT)/world/transformer/lex/ansi_c.l
+LEX      = $(ROOT)/world/transformer/lex/main.l
 
 #YACC
-YACC	 = $(ROOT)/world/transformer/yacc/ansi_c.y
+YACC	 = $(ROOT)/world/transformer/yacc/main.y
 
 #FOLDERS WITH HEADERS
 INCLUDE   = -I$(ROOT)/organism/
@@ -59,6 +59,9 @@ world: mkdir
 	$(CPP) $(CFLAGS) $(WORLD_CPP) -o ./build/world.bin $(WORLD_H) $(INCLUDE) $(LIBS)
 	./build/world.bin
 	
+precompile:
+	$(CC) -E ./tasks/hello.c > ./tasks/hello.pre
+	
 lex: mkdir
 	flex $(LEX)
 	$(CC) lex.yy.c -o ./build/lexer.bin -DLEX -ll
@@ -74,9 +77,11 @@ lex_yacc: mkdir
 	flex $(LEX)
 	yacc -d $(YACC)
 	#$(CC) --debug --verbose lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE)
-	$(CC) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE) -DYACC -lfl
+	$(CC) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE) -DYACC -ll
 	rm lex.yy.c y.tab.c y.tab.h
-	
+
+test:
+	test -f ./build/lexer.bin && cat ./tasks/hello.c | ./build/lexer.bin	
 
 clean:
 	rm -rf *.o  ./build
