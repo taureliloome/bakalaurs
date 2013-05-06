@@ -1,6 +1,20 @@
 %{
+
+extern "C"
+{
+        int yyparse(void);
+        int yylex(void);  
+        int yywrap()
+        {
+                return 1;
+        }
+
+}
+
+#include "communication.h"
 #include <stdio.h>
 #include <string.h>
+
 #define YYSTYPE char *
 extern char *yytext;
 #define YYDEBUG_LEXER_TEXT yytext
@@ -572,7 +586,6 @@ declaration_list
 	| declaration_list declaration
 	;
 %%
-
 
 
 

@@ -15,6 +15,12 @@ ES  (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 WS  [ \t\v\n\f]
 
 %{
+extern "C"
+{
+        int yyparse(void);
+        int yylex(void);
+}
+
 #include <stdio.h>
 
 #ifdef LEX
@@ -161,21 +167,15 @@ static int check_type(void);
 .							{ /* discard bad characters */ }
 
 %%
-
-int yywrap(void)        /* called at end of input */
-{
-    return 1;           /* terminate now */
-}
-
 static void comment(void)
 {
     int c;
 
-    while ((c = input()) != 0)
+    while ((c = yyinput()) != 0)
     {
         if (c == '*')
         {
-            while ((c = input()) == '*')
+            while ((c = yyinput()) == '*')
                 ;
 
             if (c == '/')

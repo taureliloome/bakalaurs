@@ -42,6 +42,7 @@ YACC	 = $(ROOT)/world/transformer/yacc/main.y
 #FOLDERS WITH HEADERS
 INCLUDE   = -I$(ROOT)/organism/
 INCLUDE  += -I$(ROOT)/helpers/messenger/
+INCLUDE  += -I$(ROOT)/helpers/communication/
 INCLUDE  += -I$(ROOT)/world/transformer/
 INCLUDE  += -I$(ROOT)/world/
 
@@ -64,7 +65,7 @@ precompile:
 	
 lex: mkdir
 	flex $(LEX)
-	$(CC) lex.yy.c -o ./build/lexer.bin -DLEX -ll
+	$(CPP) lex.yy.c -o ./build/lexer.bin -DLEX -ll
 	rm lex.yy.c
 
 
@@ -76,8 +77,7 @@ lex_yacc: mkdir
 	echo "=================================================================="
 	flex $(LEX)
 	yacc -d $(YACC)
-	#$(CC) --debug --verbose lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE)
-	$(CC) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE) -DYACC -ll
+	$(CPP) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE) -DYACC -ll
 	rm lex.yy.c y.tab.c y.tab.h
 
 test:
