@@ -33,6 +33,12 @@ WORLD_H += $(ROOT)/world/transformer/transformer.h
 WORLD_H += $(ROOT)/world/watchdog.h
 WORLD_H += $(ROOT)/helpers/messenger/messenger.h
 
+#YACC FILES
+YACC_C  = lex.yy.c 
+YACC_C += y.tab.c
+YACC_C += $(ROOT)/helpers/messenger/messenger.cpp
+YACC_C += $(ROOT)/helpers/communication/communication.cpp
+
 #LEX
 LEX      = $(ROOT)/world/transformer/lex/main.l
 
@@ -71,13 +77,13 @@ lex: mkdir
 
 lex_yacc: mkdir
 	
-	echo "=================================================================="
-	echo "= BUILD                 $(VERSION) ="
-	echo "= TARGET                                                lex_yacc ="
-	echo "=================================================================="
+#	"=================================================================="
+#	"= BUILD                 $(VERSION) ="
+#	"= TARGET                                                lex_yacc ="
+#	"=================================================================="
 	flex $(LEX)
 	yacc -d $(YACC)
-	$(CPP) lex.yy.c y.tab.c -o ./build/lexer.bin $(INCLUDE) -DYACC -ll
+	$(CPP) $(YACC_C) -o ./build/lexer.bin $(INCLUDE) -DYACC -ll -lpthread 
 	rm lex.yy.c y.tab.c y.tab.h
 
 test:

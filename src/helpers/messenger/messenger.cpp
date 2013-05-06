@@ -1,7 +1,9 @@
 #include "messenger.h"
 
 Messenger::Messenger(msg_severity_t severity){
+    output = NULL;
 	setSeverity(severity);
+    setOutputType(stderr);
 }
 
 Messenger::~Messenger(){
@@ -11,31 +13,36 @@ void Messenger::setSeverity(msg_severity_t severity){
 	msgLevel = severity;
 }
 
+void Messenger::setOutputType(FILE *type) {
+    output = type;
+    debug("Output type changed\n");
+}
+
 
 void Messenger::message(msg_severity_t severity, const char *msg){
 	int pid = getpid();
 	if ( severity >= msgLevel ) {
 		switch(severity){
 			case MSG_DEBUG3:
-				printf("%s(%05d)DEB3: %s%s\n", ANSI_COLOR_CYAN(), pid,  msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s(%05d)DEB3: %s%s\n", ANSI_COLOR_CYAN(), pid,  msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_DEBUG2:
-				printf("%s(%05d)DEB2: %s%s\n", ANSI_COLOR_GREEN(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s(%05d)DEB2: %s%s\n", ANSI_COLOR_GREEN(), pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_DEBUG:
-				printf("%s(%05d)DEBG: %s%s\n", ANSI_COLOR_GREEN(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s(%05d)DEBG: %s%s\n", ANSI_COLOR_GREEN(), pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_INFO:
-				printf("%s(%05d)INFO: %s%s\n", ANSI_COLOR_YELLOW(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s(%05d)INFO: %s%s\n", ANSI_COLOR_YELLOW(), pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_NOTICE:
-				printf("%s(%05d)NTCE: %s%s\n", ANSI_COLOR_BLUE(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s(%05d)NTCE: %s%s\n", ANSI_COLOR_BLUE(), pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_ERROR:
-				printf("%s(%05d)ERRR: %s%s\n", ANSI_COLOR_RED(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s(%05d)ERRR: %s%s\n", ANSI_COLOR_RED(), pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_CRITICAL:
-				printf("%s(%05d)CRIT: %s%s\n", ANSI_COLOR_MAGENTA(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s(%05d)CRIT: %s%s\n", ANSI_COLOR_MAGENTA(), pid, msg, ANSI_COLOR_RESET());
 				break;
 			default:
 				break;

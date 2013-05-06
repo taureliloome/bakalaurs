@@ -47,12 +47,14 @@ public:
 
 class Messenger : MsgColors{
 private:
+    FILE *output;
 	msg_severity_t msgLevel;
 public:
 	Messenger(msg_severity_t severity);
 	~Messenger();
 
 	void setSeverity(msg_severity_t severity);
+	void setOutputType(FILE *type);
 
 	void debug3(const char *msg);
 	void debug2(const char *msg);

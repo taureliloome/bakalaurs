@@ -2,12 +2,12 @@
 
 extern "C"
 {
-        int yyparse(void);
-        int yylex(void);  
-        int yywrap()
-        {
-                return 1;
-        }
+    int yyparse(void);
+    int yylex(void);  
+    int yywrap()
+    {
+            return 1;
+    }
 
 }
 
@@ -27,9 +27,18 @@ void yyerror(const char *str)
   
 int main()
 {
-        yyparse();
-        printf("\n");
-        return 0;
+	Communicator *self = Communicator::getInstance();
+	/*
+    FILE *fd = fopen("./server.out", "w+");
+	if ( fd )
+		setOutputType(fd);
+	*/
+	
+    yyparse();
+    //TODO: Enable when required sends messages to the list server
+    //submitDirSrv(argv);
+	delete self;
+	return 0;
 } 
 
 static char buff[1024] = { '\0' };

@@ -7,16 +7,19 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-
+extern "C"{
+#include <pthread.h>
+}
 #include "messenger.h"
 
 typedef struct Header {
-    uint8_t type;              // PCKT_*
-    uint32_t length;           // Tālākā satura garums (baitos)
+    uint8_t type;
+    uint64_t length;
 } __attribute__((packed)) msg_header_t;
 
-class Communicator : Messenger{
+class Communicator : public Messenger{
 private:
+    static bool instanceFlag;
     /**
      * Currently connected client count
      */
@@ -25,8 +28,18 @@ private:
      * Buffer to create strings for messenger class
      */
     char msgBuffer[512];
-public:
+    pthread_t accept_thread;
+    pthread_t derive_thread;
+
+    int listenfd;
+    int *idList;
+    uint32_t connectionCount;
+    uint8_t *connectionTimeout;
+    uint32_t *connectionFDs;
+    static Communicator *self;
     Communicator();
+public:
+    static Communicator *getInstance();
     ~Communicator();
     void setClientCounter(uint32_t *ptr);
     void incrClientCount();
@@ -78,6 +91,34 @@ public:
      */
     void *RecieveMessage(int readfd, uint8_t *msg_type, uint8_t *timeout);
 
+    void waitForConnections();
+
+    /*
+    * 1: Init array with {-1, -1, -1 ,-1 ,-1 ... }
+    *    when server is started.
+    * 2: Pass FD to gen_id, and it will put the FD in first
+    *    available player ID space.
+    * 3: Return the value of ID if OK.
+    */
+
+    //Array of FDs, Index is ID
+    //Input values, need to be changed
+
+    /**
+    //Debug print
+
+    void print(){
+        for(int i=0; i<PLAYER_COUNT; i++){
+            printf ("Number: %d\n", tmp_id);
+        }
+    **/
+
+    //Intialize array with, {-1,-1,-1,-1,-1...}
+    bool idInit();
+
+    int idGen(int id);
+
+    uint8_t *getConnectionTimeout(int id);
 };
 
 #endif /* _COMMUNICATION_H_ */
