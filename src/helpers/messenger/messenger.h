@@ -50,6 +50,7 @@ private:
     FILE *output;
 	msg_severity_t msgLevel;
 public:
+    char msgBuffer[512];
 	Messenger(msg_severity_t severity);
 	~Messenger();
 

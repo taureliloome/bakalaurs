@@ -3,10 +3,12 @@ CC      = gcc
 CPP     = g++
 CFLAGS  = -g3
 VERSION=$(shell git rev-parse HEAD)
-
+#LIBS
+LIBS  = -lpthread
 #ORGANISM FILES
 ORGANISM_CPP  = $(ROOT)/organism/organism.cpp
 ORGANISM_CPP += $(ROOT)/helpers/messenger/messenger.cpp
+ORGANISM_CPP += $(ROOT)/helpers/communication/communication.cpp
 ORGANISM_CPP += $(ROOT)/organism/main.cpp
 
 ORGANISM_H  = $(ROOT)/organism/organism.h
@@ -23,6 +25,7 @@ WORLD_CPP += $(ROOT)/world/transformer/transformer.cpp
 WORLD_CPP += $(ROOT)/world/watchdog.cpp
 WORLD_CPP += $(ROOT)/world/main.cpp
 WORLD_CPP += $(ROOT)/helpers/messenger/messenger.cpp
+WORLD_CPP += $(ROOT)/helpers/communication/communication.cpp
 
 WORLD_H  = $(ROOT)/world/analyzer.h
 WORLD_H += $(ROOT)/world/caregiver.h
@@ -64,7 +67,7 @@ organism: mkdir
 	
 world: mkdir
 	$(CPP) $(CFLAGS) $(WORLD_CPP) -o ./build/world.bin $(WORLD_H) $(INCLUDE) $(LIBS)
-	./build/world.bin
+	./build/world.bin 1337 ./tasks/hello.c
 	
 precompile:
 	$(CC) -E ./tasks/hello.c > ./tasks/hello.pre
@@ -75,7 +78,7 @@ lex: mkdir
 	rm lex.yy.c
 
 
-lex_yacc: mkdir
+yacc: mkdir
 	
 #	"=================================================================="
 #	"= BUILD                 $(VERSION) ="

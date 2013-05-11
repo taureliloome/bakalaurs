@@ -24,16 +24,20 @@ void yyerror(const char *str)
 {
         fprintf(stderr,"error: %s\n",str);
 }
-  
+static Communicator *self = NULL;
 int main()
 {
-	Communicator *self = Communicator::getInstance();
+	self = Communicator::getInstance();
 	/*
     FILE *fd = fopen("./server.out", "w+");
 	if ( fd )
 		setOutputType(fd);
 	*/
-	
+	if ( !self->ConnectToServer("127.0.0.1","1337") ){
+		delete self;
+		return 0;
+	}
+	self->RecieveMessage(0);
     yyparse();
     //TODO: Enable when required sends messages to the list server
     //submitDirSrv(argv);

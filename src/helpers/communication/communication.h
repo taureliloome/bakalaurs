@@ -19,6 +19,7 @@ typedef struct Header {
 
 class Communicator : public Messenger{
 private:
+    static const uint32_t connectionCount = 1;
     static bool instanceFlag;
     /**
      * Currently connected client count
@@ -27,15 +28,15 @@ private:
     /**
      * Buffer to create strings for messenger class
      */
-    char msgBuffer[512];
     pthread_t accept_thread;
     pthread_t derive_thread;
 
     int listenfd;
     int *idList;
-    uint32_t connectionCount;
     uint8_t *connectionTimeout;
     uint32_t *connectionFDs;
+    uint32_t serverFd;
+    msg_header_t local_msg_hdr;
     static Communicator *self;
     Communicator();
 public:
@@ -56,20 +57,20 @@ public:
      * Output:
      * int *scokfd  - fd of opened socket will be stored here
      */
-    uint8_t ConnectToServer(const char *ip, const char *port, int *sockfd);
+    bool ConnectToServer(const char *ip, const char *port);
 
     /**
      * Creates a socket and binds it to listen for any incoming messages from any ip
      * on speccified port
      *
      */
-    uint8_t CreateListenSocket(const char *port, int *listenfd);
+    uint8_t CreateListenSocket(const char *port);
 
     /**
      * Wait 10 sec for a connection from client, if succesfull, then return fd of
      * opened socket.
      */
-    int ServerAcceptClient(int * listenfd);
+    int ServerAcceptClient();
 
     /**
      * Send message to given fd
@@ -89,36 +90,18 @@ public:
      * Output:
      * uint8_t *msg_type    - type of the received message;
      */
-    void *RecieveMessage(int readfd, uint8_t *msg_type, uint8_t *timeout);
+    void *RecieveMessage(int readfd);
 
-    void waitForConnections();
+    bool waitForConnection();
 
-    /*
-    * 1: Init array with {-1, -1, -1 ,-1 ,-1 ... }
-    *    when server is started.
-    * 2: Pass FD to gen_id, and it will put the FD in first
-    *    available player ID space.
-    * 3: Return the value of ID if OK.
-    */
-
-    //Array of FDs, Index is ID
-    //Input values, need to be changed
-
-    /**
-    //Debug print
-
-    void print(){
-        for(int i=0; i<PLAYER_COUNT; i++){
-            printf ("Number: %d\n", tmp_id);
-        }
-    **/
-
-    //Intialize array with, {-1,-1,-1,-1,-1...}
-    bool idInit();
-
-    int idGen(int id);
+    bool initConnectionRegister();
+    int registerConnection(int fd);
+    int getConnectionFd(int id);
+    int *getConnectionFdPtr(int id);
 
     uint8_t *getConnectionTimeout(int id);
+
+    void communicate();
 };
 
 #endif /* _COMMUNICATION_H_ */

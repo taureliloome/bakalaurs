@@ -1,6 +1,6 @@
 #include "messenger.h"
 
-Messenger::Messenger(msg_severity_t severity){
+Messenger::Messenger(msg_severity_t severity = MSG_DEBUG3){
     output = NULL;
 	setSeverity(severity);
     setOutputType(stderr);
@@ -15,7 +15,7 @@ void Messenger::setSeverity(msg_severity_t severity){
 
 void Messenger::setOutputType(FILE *type) {
     output = type;
-    debug("Output type changed\n");
+    debug("Output type changed");
 }
 
 

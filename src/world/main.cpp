@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <string>
 
+#include "communication.h"
 #include "transformer.h"
+
+static Communicator *communicator = NULL;
 
 int main(int argv, char **argc) {
     /*
@@ -19,7 +22,7 @@ int main(int argv, char **argc) {
      | resources_1	              | NOT_IMPLEMENTED         |
      +----------------------------+-------------------------+
      */
-    if (argv < 1) {
+    if (argv < 2) {
         printf("incorrect usage not all arguments passed (%d < 2)\n", argv);
         return 1;
     }
@@ -30,6 +33,13 @@ int main(int argv, char **argc) {
      Open communication sockets.
      Setup primal database.
      */
+    communicator = Communicator::getInstance();
+    communicator->CreateListenSocket(argc[1]);
+    bool ret = communicator->waitForConnection();
+    if (!ret ){
+        return 1;
+    }
+    //Transformer a(argc[2], MSG_DEBUG3);
 
     /*
      Step 3 - setup first generation
@@ -47,8 +57,8 @@ int main(int argv, char **argc) {
      Step 5 - work
      Make number of loops set up by user and give the results
      */
-
-    Transformer a(argc[1], MSG_DEBUG3);
+    communicator->communicate();
+    delete communicator;
     return 0;
 }
 
