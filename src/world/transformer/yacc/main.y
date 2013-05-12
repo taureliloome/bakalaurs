@@ -19,45 +19,45 @@ extern "C"
 extern char *yytext;
 #define YYDEBUG_LEXER_TEXT yytext
 int yydebug;
+
+static char buff[1024] = { '\0' };
+static int buff_len = 0; 
  
 void yyerror(const char *str)
 {
         fprintf(stderr,"error: %s\n",str);
 }
+
 static Communicator *self = NULL;
 int main()
 {
-	self = Communicator::getInstance();
-	/*
-    FILE *fd = fopen("./server.out", "w+");
-	if ( fd )
-		setOutputType(fd);
-	*/
-	if ( !self->ConnectToServer("127.0.0.1","1337") ){
-		delete self;
-		return 0;
-	}
-	self->RecieveMessage(0);
     yyparse();
-    //TODO: Enable when required sends messages to the list server
-    //submitDirSrv(argv);
-	delete self;
-	return 0;
-} 
+    
+    self = Communicator::getInstance(false,"YACC");
+    /*
+    FILE *fd = fopen("./server.out", "w+");
+    if ( fd )
+        setOutputType(fd);
+    */
+    if ( !self->ConnectToServer("127.0.0.1","1337") ){
+        delete self;
+        return 0;
+    }
 
-static char buff[1024] = { '\0' };
-static int buff_len = 0; 
+    char buf[] = "ping\n";
+    self->SendMessage(self->getServerConnPtr(), buff, buff_len, 0);
+    self->communicate();
+    delete self;
+    return 0;
+}
 
 void send(const char *str, int endline)
 {
-	
 	char *a = &buff[buff_len];
 	buff_len += strlen(str);
 	sprintf(a, "%s", str);
 	if ( endline == 1){
 		printf("%s\n",buff);
-		buff_len = 0;
-		memset(buff,0,1024);
 	}
 }
 

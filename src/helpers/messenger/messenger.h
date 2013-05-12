@@ -2,6 +2,7 @@
 #define _MESSENGER_H_
 
 #include <string>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -49,9 +50,11 @@ class Messenger : MsgColors{
 private:
     FILE *output;
 	msg_severity_t msgLevel;
+	char name[16];
 public:
     char msgBuffer[512];
-	Messenger(msg_severity_t severity);
+	Messenger(msg_severity_t severity, const char *setName);
+    Messenger(msg_severity_t severity);
 	~Messenger();
 
 	void setSeverity(msg_severity_t severity);

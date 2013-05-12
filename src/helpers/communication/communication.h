@@ -17,10 +17,18 @@ typedef struct Header {
     uint64_t length;
 } __attribute__((packed)) msg_header_t;
 
+typedef struct connection_s{
+    bool used;
+    uint8_t timeout;
+    int fd;
+} connection_t;
+
+
 class Communicator : public Messenger{
 private:
-    static const uint32_t connectionCount = 1;
+    static const uint32_t connectionCount = 2;
     static bool instanceFlag;
+    bool isServer;
     /**
      * Currently connected client count
      */
@@ -32,19 +40,18 @@ private:
     pthread_t derive_thread;
 
     int listenfd;
-    int *idList;
-    uint8_t *connectionTimeout;
-    uint32_t *connectionFDs;
-    uint32_t serverFd;
+    connection_t *connections;
     msg_header_t local_msg_hdr;
     static Communicator *self;
-    Communicator();
+    Communicator(bool setServer, const char *setName);
 public:
+    static Communicator *getInstance(bool setServer, const char *setName);
     static Communicator *getInstance();
     ~Communicator();
     void setClientCounter(uint32_t *ptr);
     void incrClientCount();
     void decrClientCount();
+    int getFreeClientId();
     uint8_t getClientCount();
 
     /**
@@ -75,12 +82,12 @@ public:
     /**
      * Send message to given fd
      * Input:
-     * int sendf            - file discriptor to which send the given data
+     * int id               - id of client to which send the given data, ignored if it's the client
      * void *buf            - pointer to the data buffer
      * size_t len           - length of data that has to be sent
      * uint8_t type         - type of the message that will be sent
      */
-    uint8_t SendMessage(int sendfd, void * buf, size_t len, uint8_t msg_type);
+    bool SendMessage(connection_t *conn, void * buf, size_t len, uint8_t msg_type);
 
     /**
      * Attempts to recieve a message from gived file discriptor;
@@ -90,14 +97,15 @@ public:
      * Output:
      * uint8_t *msg_type    - type of the received message;
      */
-    void *RecieveMessage(int readfd);
+    void *RecieveMessage(connection_t *conn);
 
     bool waitForConnection();
 
     bool initConnectionRegister();
     int registerConnection(int fd);
     int getConnectionFd(int id);
-    int *getConnectionFdPtr(int id);
+    connection_t *getServerConnPtr();
+    connection_t *getConnectionPtr(int id);
 
     uint8_t *getConnectionTimeout(int id);
 

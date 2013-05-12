@@ -1,13 +1,13 @@
 #include "organism.h"
 
-Organism::Organism(): Messenger(MSG_INFO){
+Organism::Organism(): Messenger(MSG_INFO,"ORGANISM"){
 	 //TODO: change this to be the id code that is assigned during creation
 	childPid = 0;
 	outputCode = "1";
 	m_compile = true;
 	info("A new organism has been born");
 }
-Organism::Organism(msg_severity_t severity) : Messenger(severity){
+Organism::Organism(msg_severity_t severity) : Messenger(severity,"ORGANISM"){
 	 //TODO: change this to be the id code that is assigned during creation
 	childPid = 0;
 	outputCode = "1";

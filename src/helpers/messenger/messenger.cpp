@@ -1,8 +1,21 @@
 #include "messenger.h"
 
-Messenger::Messenger(msg_severity_t severity = MSG_DEBUG3){
+Messenger::Messenger(msg_severity_t severity = MSG_DEBUG3, const char *setName = "UNNAMED"){
+    if ( strlen(setName) < 16 ){
+        strcpy(name, setName);
+    } else {
+        error("Max length of messenger name is 15 characters");
+        strcpy(name, "UNNAMED");
+    }
     output = NULL;
 	setSeverity(severity);
+    setOutputType(stderr);
+}
+
+Messenger::Messenger(msg_severity_t severity = MSG_DEBUG3){
+    strcpy(name, "UNNAMED");
+    output = NULL;
+    setSeverity(severity);
     setOutputType(stderr);
 }
 
@@ -24,25 +37,25 @@ void Messenger::message(msg_severity_t severity, const char *msg){
 	if ( severity >= msgLevel ) {
 		switch(severity){
 			case MSG_DEBUG3:
-				fprintf(output, "%s(%05d)DEB3: %s%s\n", ANSI_COLOR_CYAN(), pid,  msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s%s(%05d)DEB3: %s%s\n", ANSI_COLOR_CYAN(), name, pid,  msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_DEBUG2:
-				fprintf(output, "%s(%05d)DEB2: %s%s\n", ANSI_COLOR_GREEN(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s%s(%05d)DEB2: %s%s\n", ANSI_COLOR_GREEN(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_DEBUG:
-				fprintf(output, "%s(%05d)DEBG: %s%s\n", ANSI_COLOR_GREEN(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s%s(%05d)DEBG: %s%s\n", ANSI_COLOR_GREEN(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_INFO:
-				fprintf(output, "%s(%05d)INFO: %s%s\n", ANSI_COLOR_YELLOW(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s%s(%05d)INFO: %s%s\n", ANSI_COLOR_YELLOW(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_NOTICE:
-				fprintf(output, "%s(%05d)NTCE: %s%s\n", ANSI_COLOR_BLUE(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s%s(%05d)NTCE: %s%s\n", ANSI_COLOR_BLUE(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_ERROR:
-				fprintf(output, "%s(%05d)ERRR: %s%s\n", ANSI_COLOR_RED(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s%s(%05d)ERRR: %s%s\n", ANSI_COLOR_RED(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_CRITICAL:
-				fprintf(output, "%s(%05d)CRIT: %s%s\n", ANSI_COLOR_MAGENTA(), pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s%s(%05d)CRIT: %s%s\n", ANSI_COLOR_MAGENTA(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			default:
 				break;

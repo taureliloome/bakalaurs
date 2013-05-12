@@ -33,7 +33,7 @@ int main(int argv, char **argc) {
      Open communication sockets.
      Setup primal database.
      */
-    communicator = Communicator::getInstance();
+    communicator = Communicator::getInstance(true,"WORLD");
     communicator->CreateListenSocket(argc[1]);
     bool ret = communicator->waitForConnection();
     if (!ret ){
@@ -57,7 +57,9 @@ int main(int argv, char **argc) {
      Step 5 - work
      Make number of loops set up by user and give the results
      */
-    communicator->communicate();
+    while(communicator->getClientCount()){
+
+    }
     delete communicator;
     return 0;
 }
