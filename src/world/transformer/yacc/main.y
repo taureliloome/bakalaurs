@@ -53,12 +53,12 @@ int main()
 
 void send(const char *str, int endline)
 {
+	if ( endline == 1){
+		buff[buff_len++] = '\n';
+	}
 	char *a = &buff[buff_len];
 	buff_len += strlen(str);
 	sprintf(a, "%s", str);
-	if ( endline == 1){
-		printf("%s\n",buff);
-	}
 }
 
 %}

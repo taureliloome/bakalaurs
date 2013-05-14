@@ -27,6 +27,17 @@ WORLD_CPP += $(ROOT)/world/main.cpp
 WORLD_CPP += $(ROOT)/helpers/messenger/messenger.cpp
 WORLD_CPP += $(ROOT)/helpers/communication/communication.cpp
 
+WORLD_O  = analyzer.o
+WORLD_O += caregiver.o
+WORLD_O += judge.o
+WORLD_O += mutator.o
+WORLD_O += primal.o
+WORLD_O += transformer.o
+WORLD_O += watchdog.o
+WORLD_O += main.o
+WORLD_O += messenger.o
+WORLD_O += communication.o
+
 WORLD_H  = $(ROOT)/world/analyzer.h
 WORLD_H += $(ROOT)/world/caregiver.h
 WORLD_H += $(ROOT)/world/judge.h
@@ -65,8 +76,39 @@ organism: mkdir
 	$(CPP) $(CFLAGS) $(ORGANISM_CPP) -o ./build/organism.bin $(ORGANISM_H) $(INCLUDE) $(LIBS)
 	./build/organism.bin
 	
-world: mkdir
-	$(CPP) $(CFLAGS) $(WORLD_CPP) -o ./build/world.bin $(WORLD_H) $(INCLUDE) $(LIBS)
+#Objects for world
+analyzer.o :  $(ROOT)/world/analyzer.cpp
+	$(CPP) -g -c $(ROOT)/world/analyzer.cpp $(ROOT)/world/analyzer.h $(INCLUDE)
+	
+caregiver.o :  $(ROOT)/world/caregiver.cpp
+	$(CPP) -g -c $(ROOT)/world/caregiver.cpp $(ROOT)/world/caregiver.h $(INCLUDE)
+	
+primal.o :  $(ROOT)/world/primal.cpp
+	$(CPP) -g -c $(ROOT)/world/primal.cpp $(ROOT)/world/primal.h $(INCLUDE)
+	
+judge.o :  $(ROOT)/world/judge.cpp
+	$(CPP) -g -c $(ROOT)/world/judge.cpp $(ROOT)/world/judge.h $(INCLUDE)
+	
+transformer.o :  $(ROOT)/world/transformer/transformer.cpp
+	$(CPP) -g -c $(ROOT)/world/transformer/transformer.cpp $(ROOT)/world/transformer/transformer.h $(INCLUDE)
+	
+watchdog.o :  $(ROOT)/world/watchdog.cpp
+	$(CPP) -g -c $(ROOT)/world/watchdog.cpp $(ROOT)/world/watchdog.h $(INCLUDE)
+	
+main.o :  $(ROOT)/world/main.cpp
+	$(CPP) -g -c $(ROOT)/world/main.cpp $(INCLUDE)
+	
+mutator.o	 :  $(ROOT)/world/mutator.cpp
+	$(CPP) -g -c $(ROOT)/world/mutator.cpp $(ROOT)/world/mutator.h $(INCLUDE)
+	
+messenger.o :  $(ROOT)/helpers/messenger/messenger.cpp
+	$(CPP) -g -c $(ROOT)/helpers/messenger/messenger.cpp $(ROOT)/helpers/messenger/messenger.h $(INCLUDE)
+	
+communication.o	 :  $(ROOT)/helpers/communication/communication.cpp
+	$(CPP) -g -c $(ROOT)/helpers/communication/communication.cpp $(ROOT)/helpers/communication/communication.h $(INCLUDE)
+	
+world: $(WORLD_O) mkdir
+	$(CPP) $(CFLAGS) -o ./build/world.bin $(WORLD_O) $(LIBS)
 	./build/world.bin 1337 ./tasks/hello.c
 	
 precompile:
