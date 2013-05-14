@@ -37,25 +37,25 @@ void Messenger::message(msg_severity_t severity, const char *msg){
 	if ( severity >= msgLevel ) {
 		switch(severity){
 			case MSG_DEBUG3:
-				fprintf(output, "%s%s(%05d)DEB3: %s%s\n", ANSI_COLOR_CYAN(), name, pid,  msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s<%s> (%05d) DEB3: %s%s\n", ANSI_COLOR_CYAN(), name, pid,  msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_DEBUG2:
-				fprintf(output, "%s%s(%05d)DEB2: %s%s\n", ANSI_COLOR_GREEN(), name, pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s<%s> (%05d) DEB2: %s%s\n", ANSI_COLOR_GREEN(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_DEBUG:
-				fprintf(output, "%s%s(%05d)DEBG: %s%s\n", ANSI_COLOR_GREEN(), name, pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s<%s> (%05d) DEBG: %s%s\n", ANSI_COLOR_GREEN(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_INFO:
-				fprintf(output, "%s%s(%05d)INFO: %s%s\n", ANSI_COLOR_YELLOW(), name, pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s<%s> (%05d) INFO: %s%s\n", ANSI_COLOR_YELLOW(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_NOTICE:
-				fprintf(output, "%s%s(%05d)NTCE: %s%s\n", ANSI_COLOR_BLUE(), name, pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s<%s> (%05d) NTCE: %s%s\n", ANSI_COLOR_BLUE(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_ERROR:
-				fprintf(output, "%s%s(%05d)ERRR: %s%s\n", ANSI_COLOR_RED(), name, pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s<%s> (%05d) ERRR: %s%s\n", ANSI_COLOR_RED(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			case MSG_CRITICAL:
-				fprintf(output, "%s%s(%05d)CRIT: %s%s\n", ANSI_COLOR_MAGENTA(), name, pid, msg, ANSI_COLOR_RESET());
+				fprintf(output, "%s<%s> (%05d) CRIT: %s%s\n", ANSI_COLOR_MAGENTA(), name, pid, msg, ANSI_COLOR_RESET());
 				break;
 			default:
 				break;
