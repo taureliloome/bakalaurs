@@ -294,7 +294,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
         received += read(readfd, &msg_hdr + received, sizeof(msg_hdr) - received);
 
         memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "%lu/%lu", received, sizeof(msg_hdr));
+        sprintf(msgBuffer, "%llu/%u", received, sizeof(msg_hdr));
         debug2(msgBuffer);
         /* TODO timeouts !
         if ( received != sizeof(msg_hdr) ){
@@ -307,7 +307,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
     local_msg_hdr.type = msg_hdr.type;
 
     memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "Received message header type: %d, len: %lu fd:%d", msg_hdr.type,
+    sprintf(msgBuffer, "Received message header type: %d, len: %llu fd:%d", msg_hdr.type,
             msg_hdr.length, readfd);
     debug2(msgBuffer);
 
@@ -322,7 +322,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
         received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
 
         memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "%lu/%lu", received, msg_hdr.length);
+        sprintf(msgBuffer, "%llu/%llu", received, msg_hdr.length);
         debug2(msgBuffer);
     }
     /* TODO timeouts !

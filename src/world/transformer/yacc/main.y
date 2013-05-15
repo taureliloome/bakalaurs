@@ -20,7 +20,8 @@ extern char *yytext;
 #define YYDEBUG_LEXER_TEXT yytext
 int yydebug;
 
-static char buff[1024] = { '\0' };
+static const  size_t MSG_BUFFER_SIZE = 1024;
+static char buff[MSG_BUFFER_SIZE] = { '\0' };
 static int buff_len = 0; 
  
 void yyerror(const char *str)
@@ -53,12 +54,19 @@ int main()
 
 void send(const char *str, int endline)
 {
-	if ( endline == 1){
+	if (str && strlen(str) != 0) {
+		size_t len = strlen(str);
+		if ( len+buff_len > MSG_BUFFER_SIZE ){
+			fprintf(stderr,"Full buffer\n");
+			return;
+		}
+		char *a = &buff[buff_len];
+		buff_len += len;
+		sprintf(a, "%s", str);
+	}
+	if ( endline == 1 && buff_len + 1 < MSG_BUFFER_SIZE){
 		buff[buff_len++] = '\n';
 	}
-	char *a = &buff[buff_len];
-	buff_len += strlen(str);
-	sprintf(a, "%s", str);
 }
 
 %}
@@ -86,7 +94,7 @@ void send(const char *str, int endline)
 %%
 		
 primary_expression
-	: IDENTIFIER { send("IDENTIFIER ",0); }
+	: IDENTIFIER
 	| constant
 	| string
 	| '(' expression ')'
@@ -125,8 +133,8 @@ generic_association
 postfix_expression
 	: primary_expression
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'
+	| postfix_expression '(' { send("func_call ", 1);} ')' 
+	| postfix_expression '(' { send("func_call ", 0);} argument_expression_list ')' { send("", 1);}
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER { send("PTR",0); }
 	| postfix_expression INC_OP	{ send("++",0); }
@@ -228,22 +236,22 @@ conditional_expression
 	;
 
 assignment_expression
-	: conditional_expression
+	: conditional_expression {send("",0);}
 	| unary_expression assignment_operator assignment_expression
 	;
 
 assignment_operator
-	: '='
-	| MUL_ASSIGN
-	| DIV_ASSIGN
-	| MOD_ASSIGN
-	| ADD_ASSIGN
-	| SUB_ASSIGN
-	| LEFT_ASSIGN
-	| RIGHT_ASSIGN
-	| AND_ASSIGN
-	| XOR_ASSIGN
-	| OR_ASSIGN
+	: '=' {send("=",0);}
+	| MUL_ASSIGN {send("*=",0);}
+	| DIV_ASSIGN {send("/=",0);}
+	| MOD_ASSIGN {send("%=",0);}
+	| ADD_ASSIGN {send("+=",0);}
+	| SUB_ASSIGN {send("-=",0);}
+	| LEFT_ASSIGN {send("<<=",0);}
+	| RIGHT_ASSIGN {send(">>=",0);}
+	| AND_ASSIGN {send("&=",0);}
+	| XOR_ASSIGN {send("^=",0);}
+	| OR_ASSIGN {send("|=",0);}
 	;
 
 expression
@@ -397,9 +405,7 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER { send("var ",0); }
-	| IDENTIFIER '(' ')' { send("func declaration",1);}
-	| IDENTIFIER '(' parameter_type_list ')' { send("func declaration",1);}
+	: IDENTIFIER
 	| '(' declarator ')'
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'
@@ -531,8 +537,8 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' '}'
-	| '{'  block_item_list '}'
+	: '{' { send("oBlock",1); send("eBlock",1);} '}' 
+	| '{' { send("oBlock",1);} block_item_list { send("eBlock",1); } '}'
 	;
 
 block_item_list
@@ -546,8 +552,8 @@ block_item
 	;
 
 expression_statement
-	: ';' {send(";",1);}
-	| expression ';' { send("expression ",1);}
+	: ';'
+	| expression ';'
 	;
 
 selection_statement
@@ -569,13 +575,12 @@ jump_statement
 	: GOTO IDENTIFIER ';'
 	| CONTINUE ';' { send("CONTINUE",1); }
 	| BREAK ';' { send("BREAK",1); }
-	| RETURN ';' { send("RETURN",1); }
-	| RETURN expression ';' { send("RETURN",1); }
+	| RETURN { send("RETURN",1); }';' { send("RETURN",1); }
+	| RETURN { send("RETURN",0); } expression ';' { send("",1); } 
 	;
 
 translation_unit
 	: external_declaration
-	| function_call
 	| translation_unit external_declaration
 	;
 
@@ -584,14 +589,9 @@ external_declaration
 	| declaration
 	;
 	
-function_call
-	: IDENTIFIER '(' parameter_type_list ')' ';' { send("function ",1); }
-	| IDENTIFIER '(' ')' ';' { printf("function ",1); }
-	;
-
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement
-	| declaration_specifiers declarator compound_statement
+	: declaration_specifiers declarator { send("func_decl ",1); } declaration_list compound_statement
+	| declaration_specifiers declarator { send("func_decl ",1); } compound_statement 
 	;
 
 declaration_list
