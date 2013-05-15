@@ -45,7 +45,6 @@ extern "C"
 static void comment(void);
 static int determine(int in);
 static int check_type(void);
-/*{L}{A}*"("					{ RET(FUNC_NAME_BRACE); }*/
 %}
 
 %%
