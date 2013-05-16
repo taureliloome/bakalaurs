@@ -8,6 +8,7 @@ Communicator* Communicator::self = NULL;
 Communicator::Communicator(bool setServer = false, const char *setName = "UNNAMED") :
         Messenger(MSG_DEBUG3, setName) {
     info("Communicator started");
+    transformer = NULL;
     isServer = false;
     if (!initConnectionRegister()) {
         error("Unable to initialize ID list");
@@ -38,6 +39,23 @@ Communicator::~Communicator() {
 }
 
 /* helpers */
+void Communicator::setTransformer(Transformer *new_transformer) {
+    transformer = new_transformer;
+    memset(msgBuffer, 0, 512);
+    sprintf(msgBuffer, "Transformer set to %p", transformer);
+    debug2(msgBuffer);
+}
+
+void Communicator::PassToTransformer(const char *reply) {
+    if (!transformer){
+        error("No transformer was set");
+    }
+    if (!transformer->transform(reply)) {
+        debug2("Message transformed, passing to analyzer ( NOT YET DONE !!!!!!!!!!! )");
+    }
+
+}
+
 void Communicator::incrClientCount() {
     clientCount++;
     memset(msgBuffer, 0, 512);
@@ -99,7 +117,7 @@ connection_t *Communicator::getConnectionPtr(int id) {
     debug2(msgBuffer);
     return &connections[id];
 }
-connection_t *Communicator::getServerConnPtr(){
+connection_t *Communicator::getServerConnPtr() {
     return &connections[0];
 }
 
@@ -164,7 +182,7 @@ bool Communicator::waitForConnection() {
     }
     return true;
 }
-
+/* This handles a separate client */
 static void *clientHandler(void *idptr) {
     Communicator *self = Communicator::getInstance();
     int id = *(int *) idptr;
@@ -180,13 +198,8 @@ static void *clientHandler(void *idptr) {
 
     while (conn->used) {
         reply = self->RecieveMessage(conn);
-        if ( reply ){
-            printf("MSG:\n"
-                    "=============================\n"
-                    "%s\n"
-                    "=============================\n", (char*) reply);
-            free(reply);
-        }
+        self->PassToTransformer((const char *)reply);
+        free(reply);
         if (conn->timeout >= 5) {
             memset(msgBuffer, 0, 512);
             sprintf(msgBuffer, "<SERVER> Dropping session %d due to timeout", id);
@@ -297,11 +310,11 @@ void *Communicator::RecieveMessage(connection_t *conn) {
         sprintf(msgBuffer, "%llu/%u", received, sizeof(msg_hdr));
         debug2(msgBuffer);
         /* TODO timeouts !
-        if ( received != sizeof(msg_hdr) ){
-            error("Unable to read the message");
-            return NULL;
-        }
-        */
+         if ( received != sizeof(msg_hdr) ){
+         error("Unable to read the message");
+         return NULL;
+         }
+         */
     }
     msg_hdr.length = ntohl(msg_hdr.length);
     local_msg_hdr.type = msg_hdr.type;
@@ -311,7 +324,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
             msg_hdr.length, readfd);
     debug2(msgBuffer);
 
-    if ( msg_hdr.type == 0xf){
+    if (msg_hdr.type == 0xf) {
         decrClientCount();
         return NULL;
     }
@@ -326,11 +339,11 @@ void *Communicator::RecieveMessage(connection_t *conn) {
         debug2(msgBuffer);
     }
     /* TODO timeouts !
-        if ( received != msg_hdr.length ){
-            error("Unable to read the message");
-            free(buf);
-            return NULL;
-        } */
+     if ( received != msg_hdr.length ){
+     error("Unable to read the message");
+     free(buf);
+     return NULL;
+     } */
     return buf;
 }
 

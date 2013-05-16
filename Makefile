@@ -56,6 +56,7 @@ YACC_C  = lex.yy.c
 YACC_C += y.tab.c
 YACC_C += $(ROOT)/helpers/messenger/messenger.cpp
 YACC_C += $(ROOT)/helpers/communication/communication.cpp
+YACC_C += $(ROOT)/world/transformer/transformer.cpp
 
 #LEX
 LEX      = $(ROOT)/world/transformer/lex/main.l
@@ -133,7 +134,7 @@ yacc: mkdir
 #	"=================================================================="
 	flex $(LEX)
 	yacc -d $(YACC)
-	$(CPP) $(YACC_C) -o ./build/lexer.bin $(INCLUDE) -DYACC -ll -lpthread 
+	$(CPP) $(YACC_C) -o ./build/lexer.bin $(INCLUDE) -DYACC -ll $(LIBS)
 	rm lex.yy.c y.tab.c y.tab.h
 
 test:

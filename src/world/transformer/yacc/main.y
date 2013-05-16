@@ -56,13 +56,15 @@ void send(const char *str, int endline)
 {
 	if (str && strlen(str) != 0) {
 		size_t len = strlen(str);
-		if ( len+buff_len > MSG_BUFFER_SIZE ){
+		size_t len2 = strlen(yytext);
+		if ( len2+len+buff_len > MSG_BUFFER_SIZE ){
 			fprintf(stderr,"Full buffer\n");
 			return;
 		}
 		char *a = &buff[buff_len];
-		buff_len += len;
-		sprintf(a, "%s", str);
+		buff_len += (len + len2 + 3);
+		
+		sprintf(a, "<%s|%s>", str, yytext);
 	}
 	if ( endline == 1 && buff_len + 1 < MSG_BUFFER_SIZE){
 		buff[buff_len++] = '\n';

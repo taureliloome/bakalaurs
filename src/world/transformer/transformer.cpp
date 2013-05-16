@@ -4,13 +4,20 @@ Transformer::Transformer(): Messenger(MSG_INFO) {
 }
 
 Transformer::Transformer(msg_severity_t msg_lvl) : Messenger(msg_lvl) {
-    //TODO: transform given file to nucleotide
-    transform();
 }
 
 Transformer::~Transformer(){
 }
 
-void Transformer::transform(){
-    printf("it works!\n");
+int Transformer::transform(const char *msg){
+    if ( msg ){
+        printf("MSG:\n"
+                "=============================\n"
+                "%s\n"
+                "=============================\n", (char*) msg);
+        return 0;
+    } else {
+        error("No message to transform was supplied");
+    }
+    return 1;
 }

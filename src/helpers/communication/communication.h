@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include "transformer.h"
 extern "C"{
 #include <pthread.h>
 }
@@ -43,11 +44,14 @@ private:
     connection_t *connections;
     msg_header_t local_msg_hdr;
     static Communicator *self;
+    Transformer *transformer;
     Communicator(bool setServer, const char *setName);
 public:
+    void PassToTransformer(const char *reply);
     static Communicator *getInstance(bool setServer, const char *setName);
     static Communicator *getInstance();
     ~Communicator();
+    void setTransformer(Transformer *new_transformer);
     void setClientCounter(uint32_t *ptr);
     void incrClientCount();
     void decrClientCount();
@@ -57,7 +61,7 @@ public:
     /**
      * Info:
      * function connects to socket on address and port given and returns opened
-     * sockets file discriptor into sockfd
+     * sockets file descriptor into sockfd
      * Input:
      * const char *ip - ipv4 address on which the server is located
      * int port    - port on the server
@@ -68,13 +72,13 @@ public:
 
     /**
      * Creates a socket and binds it to listen for any incoming messages from any ip
-     * on speccified port
+     * on specified port
      *
      */
     uint8_t CreateListenSocket(const char *port);
 
     /**
-     * Wait 10 sec for a connection from client, if succesfull, then return fd of
+     * Wait 10 sec for a connection from client, if successful, then return fd of
      * opened socket.
      */
     int ServerAcceptClient();
@@ -90,10 +94,10 @@ public:
     bool SendMessage(connection_t *conn, void * buf, size_t len, uint8_t msg_type);
 
     /**
-     * Attempts to recieve a message from gived file discriptor;
+     * Attempts to receive a message from given file descriptor;
      * Returns pointer to the received message payload, this has to be freed later.
      * Input:
-     * int readfd           - file discriptor from which to read data;
+     * int readfd           - file descriptor from which to read data;
      * Output:
      * uint8_t *msg_type    - type of the received message;
      */

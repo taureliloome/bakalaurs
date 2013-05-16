@@ -16,11 +16,15 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+
+extern "C"{
+#include "avl.h"
+}
 using namespace std;
 
 
 class Primal {
-    FILE *inFile;
+    avl_tree_t primal;
 public:
     Primal();
     Primal(const string input);

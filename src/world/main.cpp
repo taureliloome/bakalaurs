@@ -39,7 +39,8 @@ int main(int argv, char **argc) {
     if (!ret ){
         return 1;
     }
-    //Transformer a(argc[2], MSG_DEBUG3);
+    Transformer transformer(MSG_DEBUG3);
+    communicator->setTransformer(&transformer);
 
     /*
      Step 3 - setup first generation

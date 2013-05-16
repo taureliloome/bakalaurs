@@ -25,7 +25,6 @@ public:
     Analyzer(const string input);
     ~Analyzer();
 private:
-    bool add
     void findBlock();
 };
 

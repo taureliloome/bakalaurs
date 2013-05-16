@@ -17,24 +17,15 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
-#include "avl.h"
 #include "messenger.h"
 using namespace std;
-
-/* TODO: Add libavl here please DO IT !!!!!!!!!!!!!*/
-typedef struct nucleotide_s{
-    char name[29];
-    unsigned int id;
-    size_t len;
-    void *data;
-}nucleotide_t;
 
 class Transformer: Messenger{
 public:
     Transformer();
     Transformer(msg_severity_t msg_lvl);
     ~Transformer();
-    void transform();
+    int transform(const char *msg);
 };
 
 #endif /* _TRANSFORMER_H_ */
