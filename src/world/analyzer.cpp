@@ -1,7 +1,6 @@
 #include "analyzer.h"
 
 Analyzer::Analyzer(){
-    inFile = NULL;
 }
 
 Analyzer::Analyzer(const string input){

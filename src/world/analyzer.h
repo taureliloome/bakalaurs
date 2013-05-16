@@ -20,12 +20,12 @@ using namespace std;
 
 
 class Analyzer {
-    FILE *inFile;
 public:
     Analyzer();
     Analyzer(const string input);
     ~Analyzer();
 private:
+    bool add
     void findBlock();
 };
 

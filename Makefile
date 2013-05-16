@@ -3,8 +3,12 @@ CC      = gcc
 CPP     = g++
 CFLAGS  = -g3
 VERSION=$(shell git rev-parse HEAD)
+
 #LIBS
 LIBS  = -lpthread
+LIBS += -lavl
+
+
 #ORGANISM FILES
 ORGANISM_CPP  = $(ROOT)/organism/organism.cpp
 ORGANISM_CPP += $(ROOT)/helpers/messenger/messenger.cpp
@@ -65,6 +69,7 @@ INCLUDE  += -I$(ROOT)/helpers/messenger/
 INCLUDE  += -I$(ROOT)/helpers/communication/
 INCLUDE  += -I$(ROOT)/world/transformer/
 INCLUDE  += -I$(ROOT)/world/
+INCLUDE  += -I$(ROOT)/libs/
 
 all: mkdir organism world
 
