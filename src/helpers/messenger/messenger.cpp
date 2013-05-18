@@ -64,59 +64,59 @@ void Messenger::message(msg_severity_t severity, const char *msg){
 }
 
 
-void Messenger::debug3(const char *msg){
+void Messenger::_debug3(const char *msg){
 	message(MSG_DEBUG3, msg);
 }
 
-void Messenger::debug2(const char *msg){
+void Messenger::_debug2(const char *msg){
 	message(MSG_DEBUG2, msg);
 }
 
-void Messenger::debug(const char *msg){
+void Messenger::_debug(const char *msg){
 	message(MSG_DEBUG, msg);
 }
 
-void Messenger::info(const char *msg){
+void Messenger::_info(const char *msg){
 	message(MSG_INFO, msg);
 }
 
-void Messenger::notice(const char *msg){
+void Messenger::_notice(const char *msg){
 	message(MSG_NOTICE, msg);
 }
 
-void Messenger::error(const char *msg){
+void Messenger::_error(const char *msg){
 	message(MSG_ERROR, msg);
 }
 
-void Messenger::critical(const char *msg){
+void Messenger::_critical(const char *msg){
 	message(MSG_CRITICAL, msg);
 }
 
 
-void Messenger::debug3(const string msg){
+void Messenger::_debug3(const string msg){
 	message(MSG_DEBUG3, msg.c_str());
 }
 
-void Messenger::debug2(const string msg){
+void Messenger::_debug2(const string msg){
 	message(MSG_DEBUG2, msg.c_str());
 }
 
-void Messenger::debug(const string msg){
+void Messenger::_debug(const string msg){
 	message(MSG_DEBUG, msg.c_str());
 }
 
-void Messenger::info(const string msg){
+void Messenger::_info(const string msg){
 	message(MSG_INFO, msg.c_str());
 }
 
-void Messenger::notice(const string msg){
+void Messenger::_notice(const string msg){
 	message(MSG_NOTICE, msg.c_str());
 }
 
-void Messenger::error(const string msg){
+void Messenger::_error(const string msg){
 	message(MSG_ERROR, msg.c_str());
 }
 
-void Messenger::critical(const string msg){
+void Messenger::_critical(const string msg){
 	message(MSG_CRITICAL, msg.c_str());
 }

@@ -11,18 +11,15 @@ extern "C"
 
 }
 
-#include "communication.h"
 #include <stdio.h>
 #include <string.h>
+#include "communication.h"
+#include "transformer_if.h"
 
 #define YYSTYPE char *
 extern char *yytext;
 #define YYDEBUG_LEXER_TEXT yytext
 int yydebug;
-
-static const  size_t MSG_BUFFER_SIZE = 1024;
-static char buff[MSG_BUFFER_SIZE] = { '\0' };
-static int buff_len = 0; 
  
 void yyerror(const char *str)
 {
@@ -30,45 +27,22 @@ void yyerror(const char *str)
 }
 
 static Communicator *self = NULL;
+TransformerIf transformerIf(MSG_DEBUG3);
 int main()
 {
     yyparse();
     
     self = Communicator::getInstance(false,"YACC");
-    /*
-    FILE *fd = fopen("./server.out", "w+");
-    if ( fd )
-        setOutputType(fd);
-    */
+    
     if ( !self->ConnectToServer("127.0.0.1","1337") ){
         delete self;
         return 0;
     }
-
-    char buf[] = "ping\n";
-    self->SendMessage(self->getServerConnPtr(), buff, buff_len, 0);
+	
+    self->SendMessage(self->getServerConnPtr(), transformerIf.getBuffPtr(), transformerIf.getAndResetBuffLen(), 0);
     self->communicate();
     delete self;
     return 0;
-}
-
-void send(const char *str, int endline)
-{
-	if (str && strlen(str) != 0) {
-		size_t len = strlen(str);
-		size_t len2 = strlen(yytext);
-		if ( len2+len+buff_len > MSG_BUFFER_SIZE ){
-			fprintf(stderr,"Full buffer\n");
-			return;
-		}
-		char *a = &buff[buff_len];
-		buff_len += (len + len2 + 3);
-		
-		sprintf(a, "<%s|%s>", str, yytext);
-	}
-	if ( endline == 1 && buff_len + 1 < MSG_BUFFER_SIZE){
-		buff[buff_len++] = '\n';
-	}
 }
 
 %}
@@ -110,12 +84,12 @@ constant
 	;
 
 enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER { send("ENUM CONST ",0); }
+	: IDENTIFIER { transformerIf.addKey("ENUM CONST "); }
 	;
 
 string
-	: STRING_LITERAL { send("STRING ",0); }
-	| FUNC_NAME { send("FUNC_NAME",0); }
+	: STRING_LITERAL { transformerIf.addKey("STRING "); }
+	| FUNC_NAME { transformerIf.addKey("FUNC_NAME"); }
 	;
 
 generic_selection
@@ -135,12 +109,12 @@ generic_association
 postfix_expression
 	: primary_expression
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' { send("func_call ", 1);} ')' 
-	| postfix_expression '(' { send("func_call ", 0);} argument_expression_list ')' { send("", 1);}
+	| postfix_expression '(' { transformerIf.addKey("func_call "); transformerIf.addToBuff(); } ')' 
+	| postfix_expression '(' { transformerIf.addKey("func_call ");} argument_expression_list ')' { transformerIf.addToBuff();}
 	| postfix_expression '.' IDENTIFIER
-	| postfix_expression PTR_OP IDENTIFIER { send("PTR",0); }
-	| postfix_expression INC_OP	{ send("++",0); }
-	| postfix_expression DEC_OP { send("--",0); }
+	| postfix_expression PTR_OP IDENTIFIER { transformerIf.addKey("PTR"); }
+	| postfix_expression INC_OP	{ transformerIf.addKey("++"); }
+	| postfix_expression DEC_OP { transformerIf.addKey("--"); }
 	| '(' type_name ')' '{' initializer_list '}'
 	| '(' type_name ')' '{' initializer_list ',' '}'
 	;
@@ -161,12 +135,12 @@ unary_expression
 	;
 
 unary_operator
-	: '&' { send("&",0); }
-	| '*' { send("*",0); }
-	| '+' { send("+",0); }
-	| '-' { send("-",0); }
-	| '~' { send("~",0); }
-	| '!' { send("!",0); }
+	: '&' { transformerIf.addKey("&"); }
+	| '*' { transformerIf.addKey("*"); }
+	| '+' { transformerIf.addKey("+"); }
+	| '-' { transformerIf.addKey("-"); }
+	| '~' { transformerIf.addKey("~"); }
+	| '!' { transformerIf.addKey("!"); }
 	;
 
 cast_expression
@@ -195,8 +169,8 @@ shift_expression
 
 relational_expression
 	: shift_expression
-	| relational_expression '<' shift_expression { send("<",0); }
-	| relational_expression '>' shift_expression { send(">",0); }
+	| relational_expression '<' shift_expression { transformerIf.addKey("<"); }
+	| relational_expression '>' shift_expression { transformerIf.addKey(">"); }
 	| relational_expression LE_OP shift_expression
 	| relational_expression GE_OP shift_expression
 	;
@@ -238,22 +212,22 @@ conditional_expression
 	;
 
 assignment_expression
-	: conditional_expression {send("",0);}
+	: conditional_expression { }
 	| unary_expression assignment_operator assignment_expression
 	;
 
 assignment_operator
-	: '=' {send("=",0);}
-	| MUL_ASSIGN {send("*=",0);}
-	| DIV_ASSIGN {send("/=",0);}
-	| MOD_ASSIGN {send("%=",0);}
-	| ADD_ASSIGN {send("+=",0);}
-	| SUB_ASSIGN {send("-=",0);}
-	| LEFT_ASSIGN {send("<<=",0);}
-	| RIGHT_ASSIGN {send(">>=",0);}
-	| AND_ASSIGN {send("&=",0);}
-	| XOR_ASSIGN {send("^=",0);}
-	| OR_ASSIGN {send("|=",0);}
+	: '=' {transformerIf.addKey("=");}
+	| MUL_ASSIGN {transformerIf.addKey("*=");}
+	| DIV_ASSIGN {transformerIf.addKey("/=");}
+	| MOD_ASSIGN {transformerIf.addKey("%=");}
+	| ADD_ASSIGN {transformerIf.addKey("+=");}
+	| SUB_ASSIGN {transformerIf.addKey("-=");}
+	| LEFT_ASSIGN {transformerIf.addKey("<<=");}
+	| RIGHT_ASSIGN {transformerIf.addKey(">>=");}
+	| AND_ASSIGN {transformerIf.addKey("&=");}
+	| XOR_ASSIGN {transformerIf.addKey("^=");}
+	| OR_ASSIGN {transformerIf.addKey("|=");}
 	;
 
 expression
@@ -266,8 +240,8 @@ constant_expression
 	;
 
 declaration
-	: declaration_specifiers ';' { send("",1); }
-	| declaration_specifiers init_declarator_list ';' { send("",1); }
+	: declaration_specifiers ';' { transformerIf.addToBuff(); }
+	| declaration_specifiers init_declarator_list ';' { transformerIf.addToBuff(); }
 	| static_assert_declaration
 	;
 
@@ -304,16 +278,16 @@ storage_class_specifier
 	;
 
 type_specifier
-	: VOID			{ send("void ",0); }
-	| CHAR			{ send("char ",0); }
-	| SHORT			{ send("short ",0); }
-	| INT 			{ send("int ",0); }
-	| LONG 			{ send("long ",0); }
-	| FLOAT 		{ send("float ",0); }
-	| DOUBLE 		{ send("double ",0); }
-	| SIGNED 		{ send("signed ",0); }
-	| UNSIGNED 		{ send("unsigned ",0); }
-	| BOOL 			{ send("bool ",0); }
+	: VOID			{ transformerIf.addKey("void"); }
+	| CHAR			{ transformerIf.addKey("char"); }
+	| SHORT			{ transformerIf.addKey("short"); }
+	| INT 			{ transformerIf.addKey("int"); }
+	| LONG 			{ transformerIf.addKey("long"); }
+	| FLOAT 		{ transformerIf.addKey("float"); }
+	| DOUBLE 		{ transformerIf.addKey("double"); }
+	| SIGNED 		{ transformerIf.addKey("signed"); }
+	| UNSIGNED 		{ transformerIf.addKey("unsigned"); }
+	| BOOL 			{ transformerIf.addKey("bool"); }
 	| COMPLEX
 	| IMAGINARY	  	/* non-mandated extension */
 	| atomic_type_specifier
@@ -539,8 +513,8 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' { send("oBlock",1); send("eBlock",1);} '}' 
-	| '{' { send("oBlock",1);} block_item_list { send("eBlock",1); } '}'
+	: '{' { transformerIf.addKey("oBlock"); transformerIf.addKey("eBlock"); transformerIf.addToBuff(); } '}' 
+	| '{' { transformerIf.addKey("oBlock");} block_item_list { transformerIf.addKey("eBlock"); transformerIf.addToBuff(); } '}'
 	;
 
 block_item_list
@@ -565,20 +539,20 @@ selection_statement
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement { send("WHILE",1); }
-	| DO statement WHILE '(' expression ')' ';' { send("DO-WHILE",1); }
-	| FOR '(' expression_statement expression_statement ')' statement { send("FOR",1); }
-	| FOR '(' expression_statement expression_statement expression ')' statement  { send("FOR",1); }
-	| FOR '(' declaration expression_statement ')' statement { send("FOR",1); }
-	| FOR '(' declaration expression_statement expression ')' statement { send("FOR",1); }
+	: WHILE '(' expression ')' statement { transformerIf.addKey("WHILE"); transformerIf.addToBuff(); }
+	| DO statement WHILE '(' expression ')' ';' { transformerIf.addKey("DO-WHILE"); transformerIf.addToBuff(); }
+	| FOR '(' expression_statement expression_statement ')' statement { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
+	| FOR '(' expression_statement expression_statement expression ')' statement  { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
+	| FOR '(' declaration expression_statement ')' statement { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
+	| FOR '(' declaration expression_statement expression ')' statement { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
 	;
 
 jump_statement
 	: GOTO IDENTIFIER ';'
-	| CONTINUE ';' { send("CONTINUE",1); }
-	| BREAK ';' { send("BREAK",1); }
-	| RETURN { send("RETURN",1); }';' { send("RETURN",1); }
-	| RETURN { send("RETURN",0); } expression ';' { send("",1); } 
+	| CONTINUE ';' { transformerIf.addKey("CONTINUE"); transformerIf.addToBuff(); }
+	| BREAK ';' { transformerIf.addKey("BREAK"); transformerIf.addToBuff(); }
+	| RETURN { transformerIf.addKey("RETURN"); }';' { transformerIf.addToBuff(); }
+	| RETURN { transformerIf.addKey("RETURN"); } expression ';' { transformerIf.addToBuff(); } 
 	;
 
 translation_unit
@@ -592,8 +566,8 @@ external_declaration
 	;
 	
 function_definition
-	: declaration_specifiers declarator { send("func_decl ",1); } declaration_list compound_statement
-	| declaration_specifiers declarator { send("func_decl ",1); } compound_statement 
+	: declaration_specifiers declarator { transformerIf.addKey("func_decl"); } declaration_list compound_statement
+	| declaration_specifiers declarator { transformerIf.addKey("func_decl"); } compound_statement 
 	;
 
 declaration_list

@@ -9,74 +9,130 @@
 #include <unistd.h>
 using namespace std;
 
-typedef enum msg_severity{
-	MSG_NONE,
-	MSG_DEBUG3,
-	MSG_DEBUG2,
-	MSG_DEBUG,
-	MSG_INFO,
-	MSG_NOTICE,
-	MSG_ERROR,
-	MSG_CRITICAL,
-	MSG_MAX,
-}msg_severity_t;
+void _info(const char *msg);
+void _notice(const char *msg);
+void _error(const char *msg);
+void _critical(const char *msg);
 
-class MsgColors{
+#define debug3(STR,...) \
+do {\
+    memset(msgBuffer, 0, 512); \
+    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    _debug3(msgBuffer); \
+} while(0)
+
+#define debug2(STR,...) \
+do {\
+    memset(msgBuffer, 0, 512); \
+    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    _debug2(msgBuffer); \
+} while(0)
+
+#define debug(STR,...) \
+do {\
+    memset(msgBuffer, 0, 512); \
+    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    _debug(msgBuffer); \
+} while(0)
+
+#define info(STR,...) \
+do {\
+    memset(msgBuffer, 0, 512); \
+    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    _info(msgBuffer); \
+} while(0)
+
+#define notice(STR,...) \
+do {\
+    memset(msgBuffer, 0, 512); \
+    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    _notice(msgBuffer); \
+} while(0)
+
+#define error(STR,...) \
+do {\
+    memset(msgBuffer, 0, 512); \
+    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    _error(msgBuffer); \
+} while(0)
+
+#define critical(STR,...) \
+do {\
+    memset(msgBuffer, 0, 512); \
+    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    _critical(msgBuffer); \
+}while(0)
+
+typedef enum msg_severity {
+    MSG_NONE,
+    MSG_DEBUG3,
+    MSG_DEBUG2,
+    MSG_DEBUG,
+    MSG_INFO,
+    MSG_NOTICE,
+    MSG_ERROR,
+    MSG_CRITICAL,
+    MSG_MAX,
+} msg_severity_t;
+
+class MsgColors {
 public:
-    const char *ANSI_COLOR_CYAN(){
-    	return "\x1b[36m";   //debug3
+    const char *ANSI_COLOR_CYAN() {
+        return "\x1b[36m";   //debug3
     }
-    const char *ANSI_COLOR_GREEN(){
-    	return "\x1b[32m";   //debug3
+    const char *ANSI_COLOR_GREEN() {
+        return "\x1b[32m";   //debug3
     }
-    const char *ANSI_COLOR_YELLOW(){
-    	return "\x1b[33m";   //debug3
+    const char *ANSI_COLOR_YELLOW() {
+        return "\x1b[33m";   //debug3
     }
-    const char *ANSI_COLOR_BLUE(){
-    	return "\x1b[34m";   //debug3
+    const char *ANSI_COLOR_BLUE() {
+        return "\x1b[34m";   //debug3
     }
-    const char *ANSI_COLOR_RED(){
-    	return "\x1b[31m";   //debug3
+    const char *ANSI_COLOR_RED() {
+        return "\x1b[31m";   //debug3
     }
-    const char *ANSI_COLOR_MAGENTA(){
-    	return "\x1b[35m";   //debug3
+    const char *ANSI_COLOR_MAGENTA() {
+        return "\x1b[35m";   //debug3
     }
-    const char *ANSI_COLOR_RESET(){
-    	return "\x1b[0m";   //debug3
+    const char *ANSI_COLOR_RESET() {
+        return "\x1b[0m";   //debug3
     }
 };
 
-class Messenger : MsgColors{
+#define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
+
+class Messenger: MsgColors {
 private:
     FILE *output;
-	msg_severity_t msgLevel;
-	char name[16];
+    msg_severity_t msgLevel;
+    char name[16];
 public:
     char msgBuffer[512];
-	Messenger(msg_severity_t severity, const char *setName);
+    Messenger(msg_severity_t severity, const char *setName);
     Messenger(msg_severity_t severity);
-	~Messenger();
+    ~Messenger();
 
-	void setSeverity(msg_severity_t severity);
-	void setOutputType(FILE *type);
+    void setSeverity(msg_severity_t severity);
+    void setOutputType(FILE *type);
 
-	void debug3(const char *msg);
-	void debug2(const char *msg);
-	void debug(const char *msg);
-	void info(const char *msg);
-	void notice(const char *msg);
-	void error(const char *msg);
-	void critical(const char *msg);
+    void _debug3(const char *msg);
+    void _debug2(const char *msg);
+    void _debug(const char *msg);
+    void _info(const char *msg);
+    void _notice(const char *msg);
+    void _error(const char *msg);
+    void _critical(const char *msg);
 
-	void debug3(const string msg);
-	void debug2(const string msg);
-	void debug(const string msg);
-	void info(const string msg);
-	void notice(const string msg);
-	void error(const string msg);
-	void critical(const string msg);
+    void _debug3(const string msg);
+    void _debug2(const string msg);
+    void _debug(const string msg);
+    void _info(const string msg);
+    void _notice(const string msg);
+    void _error(const string msg);
+    void _critical(const string msg);
 private:
-	void message(msg_severity_t severity, const char *msg);
+    void message(msg_severity_t severity, const char *msg);
 };
 
 #endif /* _MESSENGER_H_*/

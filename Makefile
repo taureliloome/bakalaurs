@@ -18,7 +18,6 @@ ORGANISM_CPP += $(ROOT)/organism/main.cpp
 ORGANISM_H  = $(ROOT)/organism/organism.h
 ORGANISM_H += $(ROOT)/helpers/messenger/messenger.h
 
-
 #WORLD FILES
 WORLD_CPP  = $(ROOT)/world/analyzer.cpp
 WORLD_CPP += $(ROOT)/world/caregiver.cpp
@@ -57,6 +56,7 @@ YACC_C += y.tab.c
 YACC_C += $(ROOT)/helpers/messenger/messenger.cpp
 YACC_C += $(ROOT)/helpers/communication/communication.cpp
 YACC_C += $(ROOT)/world/transformer/transformer.cpp
+YACC_C += $(ROOT)/world/transformer/yacc/transformer_if.cpp
 
 #LEX
 LEX      = $(ROOT)/world/transformer/lex/main.l
@@ -68,6 +68,7 @@ YACC	 = $(ROOT)/world/transformer/yacc/main.y
 INCLUDE   = -I$(ROOT)/organism/
 INCLUDE  += -I$(ROOT)/helpers/messenger/
 INCLUDE  += -I$(ROOT)/helpers/communication/
+INCLUDE  += -I$(ROOT)/world/transformer/yacc/
 INCLUDE  += -I$(ROOT)/world/transformer/
 INCLUDE  += -I$(ROOT)/world/
 INCLUDE  += -I$(ROOT)/libs/
@@ -143,6 +144,11 @@ test:
 clean:
 	rm -rf *.o  ./build
 	rm -rf *.o  ./results
+	rm -rf src/world/transformer/yacc/*.h.gch 
+	rm -rf src/world/transformer/*.h.gch 
+	rm -rf src/world/*.h.gch
+	rm -rf src/helpers/communication/communication.h.gch
+	rm -rf src/helpers/messenger/messenger.h.gch
 	
 clean_lex:
 	rm ./build/lexer.bin lex.yy.c y.tab.c y.tab.h

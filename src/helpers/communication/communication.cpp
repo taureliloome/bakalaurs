@@ -9,6 +9,7 @@ Communicator::Communicator(bool setServer = false, const char *setName = "UNNAME
         Messenger(MSG_DEBUG3, setName) {
     info("Communicator started");
     transformer = NULL;
+    connections = NULL;
     isServer = false;
     if (!initConnectionRegister()) {
         error("Unable to initialize ID list");
@@ -41,13 +42,11 @@ Communicator::~Communicator() {
 /* helpers */
 void Communicator::setTransformer(Transformer *new_transformer) {
     transformer = new_transformer;
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "Transformer set to %p", transformer);
-    debug2(msgBuffer);
+    debug2("Transformer set to %p", transformer);
 }
 
 void Communicator::PassToTransformer(const char *reply) {
-    if (!transformer){
+    if (!transformer) {
         error("No transformer was set");
     }
     if (!transformer->transform(reply)) {
@@ -58,16 +57,12 @@ void Communicator::PassToTransformer(const char *reply) {
 
 void Communicator::incrClientCount() {
     clientCount++;
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "client count increased to %d", clientCount);
-    debug2(msgBuffer);
+    debug2("client count increased to %d", clientCount);
 }
 
 void Communicator::decrClientCount() {
     clientCount--;
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "client count decreased to %d", clientCount);
-    debug2(msgBuffer);
+    debug2("client count decreased to %d", clientCount);
 }
 
 uint8_t Communicator::getClientCount() {
@@ -80,9 +75,9 @@ uint8_t *Communicator::getConnectionTimeout(int id) {
 
 bool Communicator::initConnectionRegister() {
     connections = (connection_t *) malloc(sizeof(connection_t) * connectionCount);
-    memset(connections, 0, sizeof(connection_t) * connectionCount);
     if (connections == NULL)
         return false;
+    memset(connections, 0, sizeof(connection_t) * connectionCount);
     return true;
 }
 
@@ -91,9 +86,7 @@ int Communicator::registerConnection(int fd) {
     connections[id].fd = fd;
     connections[id].used = true;
     connections[id].timeout = 0;
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "Connection registered  %d/%d/%p", id, fd, &connections[id]);
-    debug(msgBuffer);
+    debug("Connection registered  %d/%d/%p", id, fd, &connections[id]);
     return id;
 }
 
@@ -112,9 +105,7 @@ int Communicator::getConnectionFd(int id) {
 }
 
 connection_t *Communicator::getConnectionPtr(int id) {
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "connection ptr %p for id %d", &connections[id], id);
-    debug2(msgBuffer);
+    debug2("connection ptr %p for id %d", &connections[id], id);
     return &connections[id];
 }
 connection_t *Communicator::getServerConnPtr() {
@@ -137,14 +128,10 @@ uint8_t Communicator::CreateListenSocket(const char *port) {
 
     if (bind(listenfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr))) {
         int errorNumber = errno;
-        memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "Unable to bind to the listen socket: %d", errorNumber);
-        error(msgBuffer);
+        error("Unable to bind to the listen socket: %d", errorNumber);
         return 0;
     }
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "Server started on with given port: %s", port);
-    notice(msgBuffer);
+    notice("Server started on with given port: %s", port);
     return 1;
 }
 
@@ -154,10 +141,8 @@ int Communicator::ServerAcceptClient() {
     int connfd = accept(listenfd, (struct sockaddr*) NULL, NULL);
     if (connfd) {
         id = registerConnection(connfd);
-        memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "Accepted client number: %d, connfd: %d", getClientCount() - 1,
+        debug("Accepted client number: %d, connfd: %d", getClientCount() - 1,
                 getConnectionFd(getClientCount() - 1));
-        debug(msgBuffer);
         return id;
     }
     perror("Unable to accept a connection");
@@ -168,14 +153,11 @@ bool Communicator::waitForConnection() {
     int id = ServerAcceptClient();
 
     if (id >= 0) {
-        memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "<SERVER> New connection (%d|%p)", getConnectionFd(id),
-                getConnectionPtr(id));
-        notice(msgBuffer);
+        notice("New connection (%d|%p)", getConnectionFd(id), getConnectionPtr(id));
 
         pthread_create(&derive_thread, 0, &clientHandler, (void*) &id);
         pthread_detach(derive_thread);
-        notice("<SERVER> Connection accepted");
+        notice("Connection accepted");
     } else {
         error("Unable to accept client");
         return false;
@@ -190,29 +172,29 @@ static void *clientHandler(void *idptr) {
 
     char msgBuffer[512];
     memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "<SERVER> New thread started id: %d, fd: %d;", id, conn->fd);
-    self->debug(msgBuffer);
+    sprintf(msgBuffer, "New thread started id: %d, fd: %d;", id, conn->fd);
+    self->_debug(msgBuffer);
 
     char message[] = "pong";
     void *reply;
 
     while (conn->used) {
         reply = self->RecieveMessage(conn);
-        self->PassToTransformer((const char *)reply);
+        self->PassToTransformer((const char *) reply);
         free(reply);
         if (conn->timeout >= 5) {
             memset(msgBuffer, 0, 512);
-            sprintf(msgBuffer, "<SERVER> Dropping session %d due to timeout", id);
+            sprintf(msgBuffer, "<HANDLER> Dropping session %d due to timeout", id);
             self->SendMessage(conn, NULL, 0, 0xf);
-            self->notice(msgBuffer);
+            self->_notice(msgBuffer);
             self->decrClientCount();
             conn->used = false;
             break;
         }
     }
     memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "<SERVER> Connection %d session ended", 0);
-    self->debug(msgBuffer);
+    sprintf(msgBuffer, "<HANDLER> Connection %d session ended", 0);
+    self->_debug(msgBuffer);
     conn->used = false;
     close(conn->fd);
     return NULL;
@@ -252,12 +234,12 @@ bool Communicator::ConnectToServer(const char *ip, const char *port) {
 
 /* Communication */
 bool Communicator::SendMessage(connection_t *conn, void * buf, size_t len, uint8_t msg_type) {
-    int sendfd = conn->fd;
-    debug2("Attempting to send a message");
-    struct Header msg_hdr;
-    msg_hdr.type = msg_type;
-    msg_hdr.length = htonl(len);
     if (conn) {
+        int sendfd = conn->fd;
+        debug2("Attempting to send a message");
+        struct Header msg_hdr;
+        msg_hdr.type = msg_type;
+        msg_hdr.length = htonl(len);
         if (sizeof(msg_hdr) != write(sendfd, &msg_hdr, sizeof(msg_hdr))) {
             perror("Unable to send msg header");
             return false;
@@ -266,10 +248,7 @@ bool Communicator::SendMessage(connection_t *conn, void * buf, size_t len, uint8
             perror("Unable to send msg");
             return false;
         }
-        memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "Message sent fd %d, type: %u; len:%u", sendfd, msg_type,
-                (uint32_t) len);
-        debug2(msgBuffer);
+        debug2("Message sent fd %d, type: %u; len:%u", sendfd, msg_type, (uint32_t ) len);
         return true;
     }
     error("Invalid connection ptr");
@@ -279,9 +258,7 @@ bool Communicator::SendMessage(connection_t *conn, void * buf, size_t len, uint8
 void *Communicator::RecieveMessage(connection_t *conn) {
     int readfd = conn->fd;
 
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "Attempting to receive a message from fd:%d", readfd);
-    debug2(msgBuffer);
+    debug2("Attempting to receive a message from fd:%d", readfd);
 
     msg_header_t msg_hdr;
     uint64_t received = 0;
@@ -306,9 +283,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
     while (received != sizeof(msg_hdr)) {
         received += read(readfd, &msg_hdr + received, sizeof(msg_hdr) - received);
 
-        memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "%llu/%u", received, sizeof(msg_hdr));
-        debug2(msgBuffer);
+        debug2("%lu/%lu", received, sizeof(msg_hdr));
         /* TODO timeouts !
          if ( received != sizeof(msg_hdr) ){
          error("Unable to read the message");
@@ -319,10 +294,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
     msg_hdr.length = ntohl(msg_hdr.length);
     local_msg_hdr.type = msg_hdr.type;
 
-    memset(msgBuffer, 0, 512);
-    sprintf(msgBuffer, "Received message header type: %d, len: %llu fd:%d", msg_hdr.type,
-            msg_hdr.length, readfd);
-    debug2(msgBuffer);
+    debug2("Received message header type: %d, len: %lu fd:%d", msg_hdr.type, msg_hdr.length, readfd);
 
     if (msg_hdr.type == 0xf) {
         decrClientCount();
@@ -334,9 +306,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
     while (received != msg_hdr.length) {
         received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
 
-        memset(msgBuffer, 0, 512);
-        sprintf(msgBuffer, "%llu/%llu", received, msg_hdr.length);
-        debug2(msgBuffer);
+        debug2("%lu/%lu", received, msg_hdr.length);
     }
     /* TODO timeouts !
      if ( received != msg_hdr.length ){
