@@ -302,12 +302,12 @@ void *Communicator::RecieveMessage(connection_t *conn) {
     }
 
     received = 0;
-    void * buf = malloc(msg_hdr.length);
+    void * buf = malloc(msg_hdr.length +1);
     while (received != msg_hdr.length) {
         received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
-
         debug2("%lu/%lu", received, msg_hdr.length);
     }
+    ((char *) buf)[msg_hdr.length] = '\0';
     /* TODO timeouts !
      if ( received != msg_hdr.length ){
      error("Unable to read the message");

@@ -47,13 +47,15 @@ public:
     TransformerIf(msg_severity_t msg_lvl);
     ~TransformerIf();
 
-    void addParam(const char *key, const char *name, const char *val);
-    void addKey(const char *key);
-    void addName(const char *name);
-    void addVal(const char *val);
+    void clearBufs();
+
+    void addParam(const char *key, const char *name, const char *val, int debug);
+    void addKey(const char *key, int debug);
+    void addName(const char *name, int debug);
+    void addVal(const char *val, int debug);
     void addBuff(const char * var, var_e type);
 
-    void addToBuff();
+    void addToBuff(int debug, bool clearKeyBuff = true);
     void itarate();
     char *getBuffPtr();
     size_t getAndResetBuffLen();

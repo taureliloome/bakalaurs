@@ -5,30 +5,32 @@ extern size_t strlen(const char * str);
 TransformerIf::TransformerIf() :
         Messenger(MSG_INFO) {
     memset(buff, 0, MSG_BUFFER_SIZE);
-    memset(len, 0, sizeof(size_t) * VAR_MAX);
-    memset(varBuff, 0, sizeof(size_t) * (VAR_VAL + 1));
+    clearBufs();
 }
 
 TransformerIf::TransformerIf(msg_severity_t msg_lvl) :
         Messenger(msg_lvl) {
     memset(buff, 0, MSG_BUFFER_SIZE);
-    memset(len, 0, sizeof(size_t) * VAR_MAX);
-    memset(varBuff, 0, sizeof(size_t) * (VAR_VAL + 1));
+    clearBufs();
 }
 
 TransformerIf::~TransformerIf() {
+    memset(buff, 0, MSG_BUFFER_SIZE);
+    clearBufs();
 }
 
-void TransformerIf::addKey(const char *key) {
-    debug3("Adding key %s",key);
+void TransformerIf::addKey(const char *key, int debug) {
+    debug3("Adding key %s %d",key, debug);
     addBuff(key, VAR_KEY);
 }
 
-void TransformerIf::addName(const char *name) {
+void TransformerIf::addName(const char *name, int debug) {
+    debug3("Adding name %s %d",name, debug);
     addBuff(name, VAR_NAME);
 }
 
-void TransformerIf::addVal(const char *val) {
+void TransformerIf::addVal(const char *val, int debug) {
+    debug3("Adding value %s %d",val, debug);
     addBuff(val, VAR_VAL);
 }
 
@@ -44,21 +46,37 @@ void TransformerIf::addBuff(const char * var, var_e type) {
     }
 }
 
-void TransformerIf::addParam(const char *key, const char *name, const char *val) {
-    addKey(key);
-    addName(name);
-    addVal(val);
+void TransformerIf::addParam(const char *key, const char *name, const char *val, int debug) {
+    addKey(key,debug);
+    addName(name,debug);
+    addVal(val, debug);
+    addToBuff(debug, true);
 }
 
-void TransformerIf::addToBuff() {
-    if (len[VAR_KEY] + len[VAR_NAME] + len[VAR_VAL] + len[VAR_BUFF] < MSG_BUFFER_SIZE) {
+void TransformerIf::addToBuff(int debug, bool clearKeyBuff) {
+    if ( len[VAR_KEY] == 0 ){
+        info("nothing to add %d",debug);
+    }
+    else if (len[VAR_KEY] + len[VAR_NAME] + len[VAR_VAL] + len[VAR_BUFF] < MSG_BUFFER_SIZE) {
+        debug3("Adding to buffer %d", debug);
         char *a = &(buff[len[VAR_BUFF]]);
         len[VAR_BUFF] += (len[VAR_KEY] + len[VAR_NAME] + len[VAR_VAL] + 4);
         sprintf(a, "<%s|%s|%s>", varBuff[VAR_KEY], varBuff[VAR_NAME], varBuff[VAR_VAL]);
     } else {
-        fprintf(stderr, "Full buffer\n");
+        error("Full buffer\n");
         return;
     }
+    if ( clearKeyBuff ){
+        memset(varBuff[VAR_KEY], 0, VAR_BUFFER_SIZE);
+        len[VAR_KEY] = 0;
+    }
+    memset(varBuff[VAR_NAME], 0, VAR_BUFFER_SIZE);
+    memset(varBuff[VAR_VAL], 0, VAR_BUFFER_SIZE);
+    len[VAR_NAME] = len[VAR_VAL] = 0;
+}
+
+void TransformerIf::clearBufs(){
+    memset(varBuff, 0, VAR_BUFFER_SIZE * (VAR_VAL + 1));
     len[VAR_KEY] = len[VAR_NAME] = len[VAR_VAL] = 0;
 }
 

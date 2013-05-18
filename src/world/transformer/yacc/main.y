@@ -70,9 +70,9 @@ int main()
 %%
 		
 primary_expression
-	: IDENTIFIER
+	: IDENTIFIER 
 	| constant
-	| string
+	| string { transformerIf.addParam("STRING","",yytext, 76); }
 	| '(' expression ')'
 	| generic_selection
 	;
@@ -84,12 +84,12 @@ constant
 	;
 
 enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER { transformerIf.addKey("ENUM CONST "); }
+	: IDENTIFIER { transformerIf.addKey("ENUM",21); }
 	;
 
 string
-	: STRING_LITERAL { transformerIf.addKey("STRING "); }
-	| FUNC_NAME { transformerIf.addKey("FUNC_NAME"); }
+	: STRING_LITERAL 
+	| FUNC_NAME { transformerIf.addKey("FUNC_NAME",22); }
 	;
 
 generic_selection
@@ -107,14 +107,17 @@ generic_association
 	;
 
 postfix_expression
-	: primary_expression
+	: primary_expression 
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' { transformerIf.addKey("func_call "); transformerIf.addToBuff(); } ')' 
-	| postfix_expression '(' { transformerIf.addKey("func_call ");} argument_expression_list ')' { transformerIf.addToBuff();}
+	| postfix_expression '(' { transformerIf.addKey("func_srt",23); transformerIf.addToBuff(0); transformerIf.addKey("func_end",73); transformerIf.addToBuff(1); } ')' 
+	| postfix_expression '('
+		{ transformerIf.addKey("func_srt",24); transformerIf.addToBuff(2);}
+		argument_expression_list ')'
+	  	{ transformerIf.addKey("func_end",25); transformerIf.addToBuff(3); }
 	| postfix_expression '.' IDENTIFIER
-	| postfix_expression PTR_OP IDENTIFIER { transformerIf.addKey("PTR"); }
-	| postfix_expression INC_OP	{ transformerIf.addKey("++"); }
-	| postfix_expression DEC_OP { transformerIf.addKey("--"); }
+	| postfix_expression PTR_OP IDENTIFIER { transformerIf.addKey("PTR",26); }
+	| postfix_expression INC_OP	{ transformerIf.addKey("++",27); }
+	| postfix_expression DEC_OP { transformerIf.addKey("--",28); }
 	| '(' type_name ')' '{' initializer_list '}'
 	| '(' type_name ')' '{' initializer_list ',' '}'
 	;
@@ -135,12 +138,12 @@ unary_expression
 	;
 
 unary_operator
-	: '&' { transformerIf.addKey("&"); }
-	| '*' { transformerIf.addKey("*"); }
-	| '+' { transformerIf.addKey("+"); }
-	| '-' { transformerIf.addKey("-"); }
-	| '~' { transformerIf.addKey("~"); }
-	| '!' { transformerIf.addKey("!"); }
+	: '&' { transformerIf.addKey("&",29); }
+	| '*' { transformerIf.addKey("*",30); }
+	| '+' { transformerIf.addKey("+",31); }
+	| '-' { transformerIf.addKey("-",32); }
+	| '~' { transformerIf.addKey("~",33); }
+	| '!' { transformerIf.addKey("!",34); }
 	;
 
 cast_expression
@@ -169,8 +172,8 @@ shift_expression
 
 relational_expression
 	: shift_expression
-	| relational_expression '<' shift_expression { transformerIf.addKey("<"); }
-	| relational_expression '>' shift_expression { transformerIf.addKey(">"); }
+	| relational_expression '<' shift_expression { transformerIf.addKey("<",35); }
+	| relational_expression '>' shift_expression { transformerIf.addKey(">",36); }
 	| relational_expression LE_OP shift_expression
 	| relational_expression GE_OP shift_expression
 	;
@@ -212,22 +215,22 @@ conditional_expression
 	;
 
 assignment_expression
-	: conditional_expression { }
+	: conditional_expression
 	| unary_expression assignment_operator assignment_expression
 	;
 
 assignment_operator
-	: '=' {transformerIf.addKey("=");}
-	| MUL_ASSIGN {transformerIf.addKey("*=");}
-	| DIV_ASSIGN {transformerIf.addKey("/=");}
-	| MOD_ASSIGN {transformerIf.addKey("%=");}
-	| ADD_ASSIGN {transformerIf.addKey("+=");}
-	| SUB_ASSIGN {transformerIf.addKey("-=");}
-	| LEFT_ASSIGN {transformerIf.addKey("<<=");}
-	| RIGHT_ASSIGN {transformerIf.addKey(">>=");}
-	| AND_ASSIGN {transformerIf.addKey("&=");}
-	| XOR_ASSIGN {transformerIf.addKey("^=");}
-	| OR_ASSIGN {transformerIf.addKey("|=");}
+	: '=' {transformerIf.addKey("=",74); } 
+	| MUL_ASSIGN {transformerIf.addKey("*=",37);}
+	| DIV_ASSIGN {transformerIf.addKey("/=",38);}
+	| MOD_ASSIGN {transformerIf.addKey("%=",39);}
+	| ADD_ASSIGN {transformerIf.addKey("+=",40);}
+	| SUB_ASSIGN {transformerIf.addKey("-=",41);}
+	| LEFT_ASSIGN {transformerIf.addKey("<<=",42);}
+	| RIGHT_ASSIGN {transformerIf.addKey(">>=",43);}
+	| AND_ASSIGN {transformerIf.addKey("&=",44);}
+	| XOR_ASSIGN {transformerIf.addKey("^=",45);}
+	| OR_ASSIGN {transformerIf.addKey("|=",46);}
 	;
 
 expression
@@ -240,8 +243,8 @@ constant_expression
 	;
 
 declaration
-	: declaration_specifiers ';' { transformerIf.addToBuff(); }
-	| declaration_specifiers init_declarator_list ';' { transformerIf.addToBuff(); }
+	: declaration_specifiers ';'
+	| declaration_specifiers init_declarator_list ';' { transformerIf.clearBufs(); }
 	| static_assert_declaration
 	;
 
@@ -259,12 +262,12 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator
+	: init_declarator { transformerIf.addToBuff(79, false); } 
 	| init_declarator_list ',' init_declarator
 	;
 
 init_declarator
-	: declarator '=' initializer
+	: declarator '=' initializer 
 	| declarator
 	;
 
@@ -278,16 +281,16 @@ storage_class_specifier
 	;
 
 type_specifier
-	: VOID			{ transformerIf.addKey("void"); }
-	| CHAR			{ transformerIf.addKey("char"); }
-	| SHORT			{ transformerIf.addKey("short"); }
-	| INT 			{ transformerIf.addKey("int"); }
-	| LONG 			{ transformerIf.addKey("long"); }
-	| FLOAT 		{ transformerIf.addKey("float"); }
-	| DOUBLE 		{ transformerIf.addKey("double"); }
-	| SIGNED 		{ transformerIf.addKey("signed"); }
-	| UNSIGNED 		{ transformerIf.addKey("unsigned"); }
-	| BOOL 			{ transformerIf.addKey("bool"); }
+	: VOID			{ transformerIf.addKey("void",47); }
+	| CHAR			{ transformerIf.addKey("char",48); }
+	| SHORT			{ transformerIf.addKey("short",49); }
+	| INT 			{ transformerIf.addKey("int",50); }
+	| LONG 			{ transformerIf.addKey("long",51); }
+	| FLOAT 		{ transformerIf.addKey("float",52); }
+	| DOUBLE 		{ transformerIf.addKey("double",53); }
+	| SIGNED 		{ transformerIf.addKey("signed",54); }
+	| UNSIGNED 		{ transformerIf.addKey("unsigned",55); }
+	| BOOL 			{ transformerIf.addKey("bool",56); }
 	| COMPLEX
 	| IMAGINARY	  	/* non-mandated extension */
 	| atomic_type_specifier
@@ -381,7 +384,7 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER
+	: IDENTIFIER { transformerIf.addName(yytext,57); } 
 	| '(' declarator ')'
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'
@@ -427,7 +430,7 @@ parameter_declaration
 	;
 
 identifier_list
-	: IDENTIFIER { printf("identifier_list "); }
+	: IDENTIFIER { transformerIf.addParam("IDENT",yytext,"",77);  }
 	| identifier_list ',' IDENTIFIER
 	;
 
@@ -469,7 +472,7 @@ direct_abstract_declarator
 initializer
 	: '{' initializer_list '}'
 	| '{' initializer_list ',' '}'
-	| assignment_expression
+	| { transformerIf.addVal(yytext,59); transformerIf.addToBuff(5, false); }  assignment_expression 
 	;
 
 initializer_list
@@ -513,8 +516,8 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' { transformerIf.addKey("oBlock"); transformerIf.addKey("eBlock"); transformerIf.addToBuff(); } '}' 
-	| '{' { transformerIf.addKey("oBlock");} block_item_list { transformerIf.addKey("eBlock"); transformerIf.addToBuff(); } '}'
+	: '{' { transformerIf.addKey("oBlock",60); transformerIf.addToBuff(6); transformerIf.addKey("eBlock",61); transformerIf.addToBuff(7); } '}' 
+	| '{' { transformerIf.addKey("oBlock",62); transformerIf.addToBuff(8); transformerIf.addName(yytext,62); } block_item_list { transformerIf.addKey("eBlock",63); transformerIf.addToBuff(10); } '}'
 	;
 
 block_item_list
@@ -539,20 +542,20 @@ selection_statement
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement { transformerIf.addKey("WHILE"); transformerIf.addToBuff(); }
-	| DO statement WHILE '(' expression ')' ';' { transformerIf.addKey("DO-WHILE"); transformerIf.addToBuff(); }
-	| FOR '(' expression_statement expression_statement ')' statement { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
-	| FOR '(' expression_statement expression_statement expression ')' statement  { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
-	| FOR '(' declaration expression_statement ')' statement { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
-	| FOR '(' declaration expression_statement expression ')' statement { transformerIf.addKey("FOR"); transformerIf.addToBuff(); }
+	: WHILE '(' expression ')' statement { transformerIf.addKey("WHILE",64); transformerIf.addToBuff(11); }
+	| DO statement WHILE '(' expression ')' ';' { transformerIf.addKey("DO-WHILE",65); transformerIf.addToBuff(12); }
+	| FOR '(' expression_statement expression_statement ')' statement { transformerIf.addKey("FOR",66); transformerIf.addToBuff(13); }
+	| FOR '(' expression_statement expression_statement expression ')' statement  { transformerIf.addKey("FOR",67); transformerIf.addToBuff(14); }
+	| FOR '(' declaration expression_statement ')' statement { transformerIf.addKey("FOR",68); transformerIf.addToBuff(15); }
+	| FOR '(' declaration expression_statement expression ')' statement { transformerIf.addKey("FOR",69); transformerIf.addToBuff(16); }
 	;
 
 jump_statement
 	: GOTO IDENTIFIER ';'
-	| CONTINUE ';' { transformerIf.addKey("CONTINUE"); transformerIf.addToBuff(); }
-	| BREAK ';' { transformerIf.addKey("BREAK"); transformerIf.addToBuff(); }
-	| RETURN { transformerIf.addKey("RETURN"); }';' { transformerIf.addToBuff(); }
-	| RETURN { transformerIf.addKey("RETURN"); } expression ';' { transformerIf.addToBuff(); } 
+	| CONTINUE ';' { transformerIf.addKey("CONTINUE",70); transformerIf.addToBuff(17); }
+	| BREAK ';' { transformerIf.addKey("BREAK",71); transformerIf.addToBuff(18); }
+	| RETURN { transformerIf.addKey("RETURN",72); }';' { transformerIf.addToBuff(19); }
+	| RETURN { transformerIf.addParam("RETURN",yytext,yytext,78); } expression ';'
 	;
 
 translation_unit
@@ -566,8 +569,8 @@ external_declaration
 	;
 	
 function_definition
-	: declaration_specifiers declarator { transformerIf.addKey("func_decl"); } declaration_list compound_statement
-	| declaration_specifiers declarator { transformerIf.addKey("func_decl"); } compound_statement 
+	: declaration_specifiers declarator {transformerIf.addToBuff(4); }  declaration_list compound_statement 
+	| declaration_specifiers declarator { transformerIf.addToBuff(75); } compound_statement 
 	;
 
 declaration_list
