@@ -64,14 +64,14 @@ LEX      = $(ROOT)/world/transformer/lex/main.l
 #YACC
 YACC	 = $(ROOT)/world/transformer/yacc/main.y
 
-#FOLDERS WITH HEADERS
+#INCLUDES
 INCLUDE   = -I$(ROOT)/organism/
 INCLUDE  += -I$(ROOT)/helpers/messenger/
 INCLUDE  += -I$(ROOT)/helpers/communication/
 INCLUDE  += -I$(ROOT)/world/transformer/yacc/
 INCLUDE  += -I$(ROOT)/world/transformer/
+INCLUDE  += -I$(ROOT)/world/includes/
 INCLUDE  += -I$(ROOT)/world/
-INCLUDE  += -I$(ROOT)/libs/
 
 all: mkdir organism world
 

@@ -9,6 +9,8 @@
 #include <unistd.h>
 using namespace std;
 
+#include "world_types.h"
+
 void _info(const char *msg);
 void _notice(const char *msg);
 void _error(const char *msg);
@@ -106,15 +108,16 @@ class Messenger: MsgColors {
 private:
     FILE *output;
     msg_severity_t msgLevel;
-    char name[16];
+    char unit[16];
 public:
     char msgBuffer[512];
-    Messenger(msg_severity_t severity, const char *setName);
-    Messenger(msg_severity_t severity);
+    Messenger(msg_severity_t severity, const char *setName = "UNNAMED");
     ~Messenger();
 
     void setSeverity(msg_severity_t severity);
     void setOutputType(FILE *type);
+
+    void printNucleotide(nucleotide_t *nucleotide);
 
     void _debug3(const char *msg);
     void _debug2(const char *msg);

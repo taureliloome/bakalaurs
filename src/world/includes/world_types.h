@@ -1,29 +1,95 @@
 #ifndef __WORLD_TYPES_H__
 #define __WORLD_TYPES_H__
+#include <stdint.h>
+
+#define NUCLEOTIDE_NAME_MAX_LEN 64
+#define FILE_NAME_MAX_LEN 64
 
 typedef enum {
-    NUCLEO_SINGLE = 0,
-    NUCLEO_IF,
-    NUCLEO_ELIF,
-    NUCLEO_ELSE,
-    NUCLEO_FUNC,
-    NUCLEO_MAX
+    NUCLEO_TYPE_BASE = 0,
+    NUCLEO_TYPE_CONTROL,
+    NUCLEO_TYPE_LOOP,
+    NUCLEO_TYPE_JUMP,
+    NUCLEO_TYPE_UNDEFINED
 } nucleotide_type_e;
 
-typedef struct nucleotide_s{
-    char file[32];              // Name of the source code file
-    char name[32];              // Variable name.
-    nucleotide_type_e type;     // Type of nucleotide see @ref nucleotide_type_e
-    uint64_t id;                // Id of current child, these are used to compare, balance and find nucleotides
+typedef enum {
+    /* defined types */
+    NUCLEO_BASE_VOID = 0,
+    NUCLEO_BASE_CHAR,
+    NUCLEO_BASE_SHORT,
+    NUCLEO_BASE_INT,
+    NUCLEO_BASE_LONG,
+    NUCLEO_BASE_FLOAT,
+    NUCLEO_BASE_DOUBLE,
+    NUCLEO_BASE_SIGNED,
+    NUCLEO_BASE_UNSIGNED,
+    NUCLEO_BASE_BOOL,
+    NUCLEO_BASE_UNDEFINED
+} nucleotide_base_e;
 
-    nucleotide_t *parent;       // Parent block, NULL if it's main();
-    nucleotide_t *child;        // First child block
-    nucleotide_t *sibling;      // Sigling blocks to current, sorted and ordered, NULL if main();
+typedef enum {
+    NUCLEO_CONTROL_FUNCTION = 0,
+    NUCLEO_CONTROL_IF,
+    NUCLEO_CONTROL_ELIF,
+    NUCLEO_CONTROL_ELSE,
+    NUCLEO_CONTROL_SWITCH,
+    NUCLEO_CONTROL_UNDEFINED
+} nucleotide_control_e;
 
-    nucleotide_t *statement;    // Statement for this block to be active, NULL if not _IF or _ELIF
+typedef enum {
+    NUCLEO_LOOP_DO = 0, NUCLEO_LOOP_WHILE, NUCLEO_LOOP_FOR, NUCLEO_LOOP_UNDEFINED
+} nucleotide_loop_e;
+
+typedef enum {
+    NUCLEO_JUMP_RETURN = 0,
+    NUCLEO_JUMP_BREAK,
+    NUCLEO_JUMP_CONTINUE,
+    NUCLEO_JUMP_GOTO,
+    NUCLEO_JUMP_UNDEFINED
+} nucleotide_jump_e;
+
+typedef union {
+    nucleotide_type_e type;
+    nucleotide_base_e base;
+    nucleotide_control_e control;
+    nucleotide_loop_e loop;
+    nucleotide_jump_e jump;
+    uint32_t raw;
+} nucleotide_u;
+
+template<typename T>
+struct nucleotide_base_s {
+    nucleotide_base_e type;
+    T value;
+};
+
+typedef struct nucleotide_s {
+    char file[FILE_NAME_MAX_LEN];                   // Name of the source code file
+    char name[NUCLEOTIDE_NAME_MAX_LEN];             // Variable name.
+    nucleotide_type_e type;                         // Type of nucleotide see @ref nucleotide_type_e
+    nucleotide_u subtype;
+    union {
+        struct {
+            struct nucleotide_s *statement;      // Statement for this block to be active, NULL if not _IF or _ELIF
+            struct nucleotide_s *child;                             // First child block
+        } control;
+        struct {
+            struct nucleotide_s *statement;      // Statement for this block to be active, NULL if not _IF or _ELIF
+            struct nucleotide_s *child;                             // First child block
+        } loop;
+        struct {
+            struct nucleotide_s *jump;
+            struct nucleotide_s *ret;
+        } ret;
+    };
+    uint64_t id;     // Id of current child, these are used to compare, balance and find nucleotides
+
+    nucleotide_s *parent;                           // Parent block, NULL if it's main();
+    nucleotide_s *sibling;         // Sibling blocks to current, sorted and ordered, NULL if main();
 
     size_t len;
     char *val;
-}nucleotide_t;
+} nucleotide_t;
 
 #endif /* __WORLD_TYPES_H__ */
