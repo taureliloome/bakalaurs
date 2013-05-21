@@ -21,7 +21,6 @@ using namespace std;
 
 
 class Caregiver{
-    FILE *inFile;
 public:
     Caregiver();
     Caregiver(const string input);

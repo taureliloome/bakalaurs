@@ -20,7 +20,6 @@ using namespace std;
 
 
 class Mutator {
-    FILE *inFile;
 public:
     Mutator();
     Mutator(const string input);

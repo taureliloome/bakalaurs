@@ -12,23 +12,20 @@ Transformer::Transformer(msg_severity_t msg_lvl) :
 Transformer::~Transformer() {
 }
 
-int Transformer::transform(const char *msg) {
+int Transformer::transform(transfer_t *msg, size_t total) {
     if (msg) {
-        printf("MSG:\n"
-                "=============================\n"
-                "%s\n"
-                "=============================\n", (char*) msg);
-        size_t read = 0;
-        size_t total = strlen(msg);
+        size_t rd = 0;
         nucleotide_t *nucleotide = NULL;
-        char key[NUCLEOTIDE_NAME_MAX_LEN] = {'\0'};
-        char name[NUCLEOTIDE_NAME_MAX_LEN]= {'\0'};
-        char val[NUCLEOTIDE_NAME_MAX_LEN]= {'\0'};
-        while (read < total) {
-            sscanf(msg, "<%s|%s|%s>", key, name, val);
-            read += strlen(key) + strlen(name) + strlen(val) + 4;
-            nucleotide = createNucleotide(key, name, val);
-            if (nucleotide){
+        char key[NUCLEOTIDE_NAME_MAX_LEN] = { '\0' };
+        char name[NUCLEOTIDE_NAME_MAX_LEN] = { '\0' };
+        char val[NUCLEOTIDE_NAME_MAX_LEN] = { '\0' };
+        total /= sizeof(transfer_t);
+        while (rd < total) {
+            rd++;
+            debug3("%s %s %s", msg[rd].key, msg[rd].name, msg[rd].val);
+
+            nucleotide = createNucleotide(msg[rd].key, msg[rd].name, msg[rd].val);
+            if (nucleotide) {
                 nucleotideToStr(nucleotide);
                 free(nucleotide);
             } else {
@@ -43,19 +40,26 @@ int Transformer::transform(const char *msg) {
     return 1;
 }
 
-void Transformer::nucleotideToStr(nucleotide_t *nucleotide){
-    info("Nucleotide %p\n"
-         "=============================\n"
-         "Type\t\t %s\n"
-         "Subtype\t\t%s\n"
-         "=============================",
-         nucleotide,
-         typeToStr(nucleotide->type),
-         baseToStr(nucleotide->subtype.base) );
+const char *Transformer::subtypeToStr(nucleotide_type_e type, nucleotide_u subtype) {
+    switch (type) {
+    case NUCLEO_TYPE_BASE:
+        return baseToStr(subtype.base);
+        break;
+    case NUCLEO_TYPE_CONTROL:
+        return controlToStr(subtype.control);
+        break;
+    case NUCLEO_TYPE_LOOP:
+        return loopToStr(subtype.loop);
+        break;
+    case NUCLEO_TYPE_JUMP:
+        return jumpToStr(subtype.jump);
+        break;
+    }
+    return "UNDEFINED";
 }
 
-const char *Transformer::typeToStr(nucleotide_type_e type){
-    switch (type){
+const char *Transformer::typeToStr(nucleotide_type_e type) {
+    switch (type) {
     case NUCLEO_TYPE_BASE:
         return "BASE";
         break;
@@ -72,8 +76,8 @@ const char *Transformer::typeToStr(nucleotide_type_e type){
     return "UNDEFINED";
 }
 
-const char *Transformer::baseToStr(nucleotide_base_e base){
-    switch (base){
+const char *Transformer::baseToStr(nucleotide_base_e base) {
+    switch (base) {
     case NUCLEO_BASE_VOID:
         return "BASE";
         break;
@@ -104,23 +108,85 @@ const char *Transformer::baseToStr(nucleotide_base_e base){
     case NUCLEO_BASE_BOOL:
         return "BOOL";
         break;
+    case NUCLEO_BASE_STRING:
+        return "STRING";
+        break;
+    }
+    return "UNDEFINED";
+}
+
+const char *Transformer::controlToStr(nucleotide_control_e control) {
+    switch (control) {
+    case NUCLEO_CONTROL_FUNCTION:
+        return "FUNCTION";
+        break;
+    case NUCLEO_CONTROL_IF:
+        return "IF";
+        break;
+    case NUCLEO_CONTROL_ELIF:
+        return "ELSE IF";
+        break;
+    case NUCLEO_CONTROL_ELSE:
+        return "ELSE";
+        break;
+    case NUCLEO_CONTROL_SWITCH:
+        return "SWITCH";
+        break;
+    }
+    return "UNDEFINED";
+}
+
+const char *Transformer::loopToStr(nucleotide_loop_e loop) {
+    switch (loop) {
+    case NUCLEO_LOOP_DO:
+        return "DO WHILE";
+        break;
+    case NUCLEO_LOOP_WHILE:
+        return "WHILE";
+        break;
+    case NUCLEO_LOOP_FOR:
+        return "FOR";
+        break;
+    }
+    return "UNDEFINED";
+}
+
+const char *Transformer::jumpToStr(nucleotide_jump_e jump) {
+    switch (jump) {
+    case NUCLEO_JUMP_RETURN:
+        return "RETURN";
+        break;
+    case NUCLEO_JUMP_BREAK:
+        return "BREAK";
+        break;
+    case NUCLEO_JUMP_CONTINUE:
+        return "CONTINUE";
+        break;
+    case NUCLEO_JUMP_GOTO:
+        return "GOTO";
+        break;
     }
     return "UNDEFINED";
 }
 
 nucleotide_type_e Transformer::strToType(const char *type, uint32_t *subtype) {
+    *subtype = 0;
     *subtype = strToBase(type);
-    if (*subtype != NUCLEO_BASE_UNDEFINED)
+    if (*subtype != NUCLEO_BASE_UNDEFINED) {
         return NUCLEO_TYPE_BASE;
+    }
     *subtype = strToControl(type);
-    if (*subtype != NUCLEO_BASE_UNDEFINED)
+    if (*subtype != NUCLEO_CONTROL_UNDEFINED) {
         return NUCLEO_TYPE_CONTROL;
+    }
     *subtype = strToLoop(type);
-    if (*subtype != NUCLEO_BASE_UNDEFINED)
+    if (*subtype != NUCLEO_LOOP_UNDEFINED) {
         return NUCLEO_TYPE_LOOP;
-    *subtype = strToJump(type);
-    if (*subtype != NUCLEO_BASE_UNDEFINED)
+    }
+    *subtype = strToLoop(type);
+    if (*subtype != NUCLEO_JUMP_UNDEFINED) {
         return NUCLEO_TYPE_JUMP;
+    }
     return NUCLEO_TYPE_UNDEFINED;
 }
 
@@ -145,19 +211,48 @@ nucleotide_base_e Transformer::strToBase(const char *base) {
         return NUCLEO_BASE_UNSIGNED;
     } else if (!strcmp(base, "bool")) {
         return NUCLEO_BASE_BOOL;
+    } else if (!strcmp(base, "string")) {
+        return NUCLEO_BASE_STRING;
     }
     return NUCLEO_BASE_UNDEFINED;
 }
 
 nucleotide_control_e Transformer::strToControl(const char *control) {
+    if (!strcmp(control, "func_srt")) {
+        return NUCLEO_CONTROL_FUNCTION;
+    } else if (!strcmp(control, "if")) {
+        return NUCLEO_CONTROL_IF;
+    } else if (!strcmp(control, "elif")) {
+        return NUCLEO_CONTROL_ELIF;
+    } else if (!strcmp(control, "else")) {
+        return NUCLEO_CONTROL_ELSE;
+    } else if (!strcmp(control, "switch")) {
+        return NUCLEO_CONTROL_SWITCH;
+    }
     return NUCLEO_CONTROL_UNDEFINED;
 }
 
 nucleotide_loop_e Transformer::strToLoop(const char *loop) {
+    if (!strcmp(loop, "do_while")) {
+        return NUCLEO_LOOP_DO;
+    } else if (!strcmp(loop, "while")) {
+        return NUCLEO_LOOP_WHILE;
+    } else if (!strcmp(loop, "for")) {
+        return NUCLEO_LOOP_FOR;
+    }
     return NUCLEO_LOOP_UNDEFINED;
 }
 
 nucleotide_jump_e Transformer::strToJump(const char *jump) {
+    if (!strcmp(jump, "return")) {
+        return NUCLEO_JUMP_RETURN;
+    } else if (!strcmp(jump, "break")) {
+        return NUCLEO_JUMP_BREAK;
+    } else if (!strcmp(jump, "continue")) {
+        return NUCLEO_JUMP_CONTINUE;
+    } else if (!strcmp(jump, "goto")) {
+        return NUCLEO_JUMP_GOTO;
+    }
     return NUCLEO_JUMP_UNDEFINED;
 }
 
@@ -167,6 +262,54 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
         return NULL;
     uint32_t subtype;
     nucleotide->type = strToType(type, &subtype);
+    strcpy(nucleotide->name, name);
     nucleotide->subtype.raw = subtype;
+
+    if (val) {
+        switch (nucleotide->type) {
+        case NUCLEO_TYPE_BASE:
+            switch (nucleotide->subtype.base) {
+            case NUCLEO_BASE_STRING:
+                strcpy(nucleotide->subvalues.base.str, val);
+                break;
+            case NUCLEO_BASE_VOID:
+                break;
+            case NUCLEO_BASE_SIGNED:
+                sscanf(val, "%d", &nucleotide->subvalues.base.sg);
+                break;
+            case NUCLEO_BASE_INT:
+                sscanf(val, "%d", &nucleotide->subvalues.base.i);
+                break;
+            case NUCLEO_BASE_CHAR:
+                sscanf(val, "%c", &nucleotide->subvalues.base.c);
+                break;
+            case NUCLEO_BASE_FLOAT:
+                sscanf(val, "%f", &nucleotide->subvalues.base.f);
+                break;
+            case NUCLEO_BASE_DOUBLE:
+                sscanf(val, "%lf", &nucleotide->subvalues.base.d);
+                break;
+            case NUCLEO_BASE_UNSIGNED:
+                sscanf(val, "%u", &nucleotide->subvalues.base.usg);
+                break;
+            case NUCLEO_BASE_BOOL:
+                if (strcmp("true", val))
+                    nucleotide->subvalues.base.b = true;
+                else
+                    nucleotide->subvalues.base.b = false;
+                break;
+            }
+            break;
+        }
+    }
     return nucleotide;
+}
+
+void Transformer::nucleotideToStr(nucleotide_t *nucleotide) {
+    info(
+            "\n=============================\n" "Type\t\t%s(%d)\n" "Subtype\t\t%s(%d)\nName\t\t%s\nValue\t\t%x\n" "=============================\n",
+
+            typeToStr(nucleotide->type), nucleotide->type,
+            subtypeToStr(nucleotide->type, nucleotide->subtype), nucleotide->subtype.base,
+            nucleotide->name, nucleotide->subtype.raw);
 }

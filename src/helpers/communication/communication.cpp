@@ -45,11 +45,11 @@ void Communicator::setTransformer(Transformer *new_transformer) {
     debug2("Transformer set to %p", transformer);
 }
 
-void Communicator::PassToTransformer(const char *reply) {
+void Communicator::PassToTransformer(transfer_t *reply, size_t len) {
     if (!transformer) {
         error("No transformer was set");
     }
-    if (!transformer->transform(reply)) {
+    if (!transformer->transform(reply, len)) {
         debug2("Message transformed, passing to analyzer ( NOT YET DONE !!!!!!!!!!! )");
     }
 
@@ -179,8 +179,9 @@ static void *clientHandler(void *idptr) {
     void *reply;
 
     while (conn->used) {
-        reply = self->RecieveMessage(conn);
-        self->PassToTransformer((const char *) reply);
+        size_t len = 0;
+        reply = self->RecieveMessage(conn, &len);
+        self->PassToTransformer((transfer_t *) reply, len);
         free(reply);
         if (conn->timeout >= 5) {
             memset(msgBuffer, 0, 512);
@@ -255,7 +256,7 @@ bool Communicator::SendMessage(connection_t *conn, void * buf, size_t len, uint8
     return false;
 }
 
-void *Communicator::RecieveMessage(connection_t *conn) {
+void *Communicator::RecieveMessage(connection_t *conn, size_t *len) {
     int readfd = conn->fd;
 
     debug2("Attempting to receive a message from fd:%d", readfd);
@@ -294,7 +295,8 @@ void *Communicator::RecieveMessage(connection_t *conn) {
     msg_hdr.length = ntohl(msg_hdr.length);
     local_msg_hdr.type = msg_hdr.type;
 
-    debug2("Received message header type: %d, len: %lu fd:%d", msg_hdr.type, msg_hdr.length, readfd);
+    debug2("Received message header type: %d, len: %lu fd:%d", msg_hdr.type, msg_hdr.length,
+            readfd);
 
     if (msg_hdr.type == 0xf) {
         decrClientCount();
@@ -302,7 +304,7 @@ void *Communicator::RecieveMessage(connection_t *conn) {
     }
 
     received = 0;
-    void * buf = malloc(msg_hdr.length +1);
+    void * buf = malloc(msg_hdr.length + 1);
     while (received != msg_hdr.length) {
         received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
         debug2("%lu/%lu", received, msg_hdr.length);
@@ -314,6 +316,8 @@ void *Communicator::RecieveMessage(connection_t *conn) {
      free(buf);
      return NULL;
      } */
+    if (len)
+        *len = msg_hdr.length;
     return buf;
 }
 

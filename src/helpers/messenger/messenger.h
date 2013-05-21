@@ -19,49 +19,49 @@ void _critical(const char *msg);
 #define debug3(STR,...) \
 do {\
     memset(msgBuffer, 0, 512); \
-    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    sprintf(msgBuffer, STR "(%s:%d %s)", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__ ); \
     _debug3(msgBuffer); \
 } while(0)
 
 #define debug2(STR,...) \
 do {\
     memset(msgBuffer, 0, 512); \
-    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    sprintf(msgBuffer, STR "(%s:%d %s)", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__ ); \
     _debug2(msgBuffer); \
 } while(0)
 
 #define debug(STR,...) \
 do {\
     memset(msgBuffer, 0, 512); \
-    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    sprintf(msgBuffer, STR "(%s:%d %s)", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__ ); \
     _debug(msgBuffer); \
 } while(0)
 
 #define info(STR,...) \
 do {\
     memset(msgBuffer, 0, 512); \
-    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    sprintf(msgBuffer, STR "(%s:%d %s)", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__ ); \
     _info(msgBuffer); \
 } while(0)
 
 #define notice(STR,...) \
 do {\
     memset(msgBuffer, 0, 512); \
-    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    sprintf(msgBuffer, STR "(%s:%d %s)", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__ ); \
     _notice(msgBuffer); \
 } while(0)
 
 #define error(STR,...) \
 do {\
     memset(msgBuffer, 0, 512); \
-    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    sprintf(msgBuffer, STR "(%s:%d %s)", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__ ); \
     _error(msgBuffer); \
 } while(0)
 
 #define critical(STR,...) \
 do {\
     memset(msgBuffer, 0, 512); \
-    sprintf(msgBuffer, STR "(%s:%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__); \
+    sprintf(msgBuffer, STR "(%s:%d %s)", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__ ); \
     _critical(msgBuffer); \
 }while(0)
 
@@ -101,8 +101,6 @@ public:
         return "\x1b[0m";   //debug3
     }
 };
-
-#define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
 
 class Messenger: MsgColors {
 private:

@@ -26,12 +26,16 @@ public:
     Transformer();
     Transformer(msg_severity_t msg_lvl);
     ~Transformer();
-    int transform(const char *msg);
+    int transform(transfer_t *msg, size_t len);
 
     void nucleotideToStr(nucleotide_t *nucleotide);
 
+    const char *subtypeToStr(nucleotide_type_e type, nucleotide_u subtype );
     const char *typeToStr(nucleotide_type_e type);
     const char *baseToStr(nucleotide_base_e base);
+    const char *controlToStr(nucleotide_control_e control);
+    const char *loopToStr(nucleotide_loop_e loop);
+    const char *jumpToStr(nucleotide_jump_e jump);
 
     nucleotide_type_e strToType(const char *type, uint32_t *subtype);
     nucleotide_base_e strToBase(const char *base);

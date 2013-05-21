@@ -47,7 +47,7 @@ private:
     Transformer *transformer;
     Communicator(bool setServer, const char *setName);
 public:
-    void PassToTransformer(const char *reply);
+    void PassToTransformer(transfer_t *reply, size_t len);
     static Communicator *getInstance(bool setServer, const char *setName);
     static Communicator *getInstance();
     ~Communicator();
@@ -99,9 +99,10 @@ public:
      * Input:
      * int readfd           - file descriptor from which to read data;
      * Output:
-     * uint8_t *msg_type    - type of the received message;
+     * return uint8_t *msg_type    - type of the received message;
+     * out size_t *len             - optional, if passed contains length of read data
      */
-    void *RecieveMessage(connection_t *conn);
+    void *RecieveMessage(connection_t *conn, size_t *len = NULL);
 
     bool waitForConnection();
 

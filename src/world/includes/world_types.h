@@ -2,7 +2,10 @@
 #define __WORLD_TYPES_H__
 #include <stdint.h>
 
-#define NUCLEOTIDE_NAME_MAX_LEN 64
+#define MAX_KEY_LEN  8
+#define MAX_NAME_LEN 64
+#define MAX_VAL_LEN 64
+#define NUCLEOTIDE_NAME_MAX_LEN MAX_NAME_LEN
 #define FILE_NAME_MAX_LEN 64
 
 typedef enum {
@@ -25,6 +28,7 @@ typedef enum {
     NUCLEO_BASE_SIGNED,
     NUCLEO_BASE_UNSIGNED,
     NUCLEO_BASE_BOOL,
+    NUCLEO_BASE_STRING,
     NUCLEO_BASE_UNDEFINED
 } nucleotide_base_e;
 
@@ -49,6 +53,12 @@ typedef enum {
     NUCLEO_JUMP_UNDEFINED
 } nucleotide_jump_e;
 
+typedef struct transfer_s {
+    char key[MAX_KEY_LEN];
+    char name[MAX_NAME_LEN];
+    char val[MAX_VAL_LEN];
+} transfer_t;
+
 typedef union {
     nucleotide_type_e type;
     nucleotide_base_e base;
@@ -58,11 +68,18 @@ typedef union {
     uint32_t raw;
 } nucleotide_u;
 
-template<typename T>
-struct nucleotide_base_s {
-    nucleotide_base_e type;
-    T value;
-};
+typedef union {
+    char c;
+    short s;
+    int i;
+    long l;
+    float f;
+    double d;
+    signed sg;
+    unsigned usg;
+    bool b;
+    char str[MAX_VAL_LEN];
+}nucleotide_base_u;
 
 typedef struct nucleotide_s {
     char file[FILE_NAME_MAX_LEN];                   // Name of the source code file
@@ -70,19 +87,20 @@ typedef struct nucleotide_s {
     nucleotide_type_e type;                         // Type of nucleotide see @ref nucleotide_type_e
     nucleotide_u subtype;
     union {
+        nucleotide_base_u base;
         struct {
-            struct nucleotide_s *statement;      // Statement for this block to be active, NULL if not _IF or _ELIF
+            struct nucleotide_s *statement; // Statement for this block to be active, NULL if not _IF or _ELIF
             struct nucleotide_s *child;                             // First child block
         } control;
         struct {
-            struct nucleotide_s *statement;      // Statement for this block to be active, NULL if not _IF or _ELIF
+            struct nucleotide_s *statement; // Statement for this block to be active, NULL if not _IF or _ELIF
             struct nucleotide_s *child;                             // First child block
         } loop;
         struct {
             struct nucleotide_s *jump;
             struct nucleotide_s *ret;
         } ret;
-    };
+    }subvalues;
     uint64_t id;     // Id of current child, these are used to compare, balance and find nucleotides
 
     nucleotide_s *parent;                           // Parent block, NULL if it's main();

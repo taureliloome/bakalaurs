@@ -116,6 +116,8 @@ communication.o	 :  $(ROOT)/helpers/communication/communication.cpp
 	
 world: $(WORLD_O) mkdir
 	$(CPP) $(CFLAGS) -o ./build/world.bin $(WORLD_O) $(LIBS)
+	
+run_world: world
 	./build/world.bin 1337 ./tasks/hello.c
 	
 precompile:

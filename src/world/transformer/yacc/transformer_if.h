@@ -36,12 +36,11 @@ typedef enum{
 
 class TransformerIf: Messenger{
     static const size_t MSG_BUFFER_SIZE = 1024;
-    static const size_t VAR_BUFFER_SIZE = 128;
 
-    size_t len[VAR_MAX];
+    size_t len;
 
-    char buff[MSG_BUFFER_SIZE];
-    char varBuff[VAR_VAL + 1][VAR_BUFFER_SIZE];
+    transfer_t sendBuff[MSG_BUFFER_SIZE];
+    transfer_t accBuff;
 public:
     TransformerIf();
     TransformerIf(msg_severity_t msg_lvl);
@@ -57,7 +56,7 @@ public:
 
     void addToBuff(int debug, bool clearKeyBuff = true);
     void itarate();
-    char *getBuffPtr();
+    transfer_t *getBuffPtr();
     size_t getAndResetBuffLen();
 };
 

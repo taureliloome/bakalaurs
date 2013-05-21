@@ -72,7 +72,7 @@ int main()
 primary_expression
 	: IDENTIFIER 
 	| constant
-	| string { transformerIf.addParam("STRING","",yytext, 76); }
+	| string { transformerIf.addParam("string","",yytext, 76); }
 	| '(' expression ')'
 	| generic_selection
 	;
@@ -84,12 +84,12 @@ constant
 	;
 
 enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER { transformerIf.addKey("ENUM",21); }
+	: IDENTIFIER { transformerIf.addKey("enum",21); }
 	;
 
 string
 	: STRING_LITERAL 
-	| FUNC_NAME { transformerIf.addKey("FUNC_NAME",22); }
+	| FUNC_NAME { transformerIf.addKey("fnc_name",22); }
 	;
 
 generic_selection

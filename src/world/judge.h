@@ -19,7 +19,6 @@
 using namespace std;
 
 class Judge {
-    FILE *inFile;
 public:
     Judge();
     Judge(const string input);

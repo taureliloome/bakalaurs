@@ -1,95 +1,97 @@
 #include "transformer_if.h"
 extern char * strcpy(char * destination, const char * source);
-extern size_t strlen(const char * str);
 
 TransformerIf::TransformerIf() :
         Messenger(MSG_INFO) {
-    memset(buff, 0, MSG_BUFFER_SIZE);
+    memset(&accBuff, 0, sizeof(0));
+    memset(sendBuff, 0, sizeof(0));
     clearBufs();
 }
 
 TransformerIf::TransformerIf(msg_severity_t msg_lvl) :
         Messenger(msg_lvl) {
-    memset(buff, 0, MSG_BUFFER_SIZE);
+    memset(&accBuff, 0, sizeof(0));
+    memset(sendBuff, 0, sizeof(0));
     clearBufs();
 }
 
 TransformerIf::~TransformerIf() {
-    memset(buff, 0, MSG_BUFFER_SIZE);
+    memset(&accBuff, 0, sizeof(0));
+    memset(sendBuff, 0, sizeof(0));
     clearBufs();
 }
 
 void TransformerIf::addKey(const char *key, int debug) {
-    debug3("Adding key %s %d",key, debug);
+    debug3("Adding key %s %d", key, debug);
     addBuff(key, VAR_KEY);
 }
 
 void TransformerIf::addName(const char *name, int debug) {
-    debug3("Adding name %s %d",name, debug);
+    debug3("Adding name %s %d", name, debug);
     addBuff(name, VAR_NAME);
 }
 
 void TransformerIf::addVal(const char *val, int debug) {
-    debug3("Adding value %s %d",val, debug);
+    debug3("Adding value %s %d", val, debug);
     addBuff(val, VAR_VAL);
 }
 
 void TransformerIf::addBuff(const char * var, var_e type) {
-    if (var) {
-        if (len[type] != 0) {
-            error("length was not removed, possible data destruction");
-        }
-        len[type] = strlen(var);
-        if (len[type] < VAR_BUFFER_SIZE && len[type] > 0) {
-            strcpy(varBuff[type], var);
-        }
+    switch (type) {
+    case VAR_KEY:
+        strcpy(accBuff.key, var);
+        break;
+
+    case VAR_NAME:
+        strcpy(accBuff.name, var);
+        break;
+
+    case VAR_VAL:
+        strcpy(accBuff.val, var);
+        break;
     }
 }
 
 void TransformerIf::addParam(const char *key, const char *name, const char *val, int debug) {
-    addKey(key,debug);
-    addName(name,debug);
+    addKey(key, debug);
+    addName(name, debug);
     addVal(val, debug);
     addToBuff(debug, true);
 }
 
 void TransformerIf::addToBuff(int debug, bool clearKeyBuff) {
-    if ( len[VAR_KEY] == 0 ){
-        info("nothing to add %d",debug);
-    }
-    else if (len[VAR_KEY] + len[VAR_NAME] + len[VAR_VAL] + len[VAR_BUFF] < MSG_BUFFER_SIZE) {
+    if (strlen(accBuff.key) == 0) {
+        info("nothing to add %d", debug);
+    } else if (len < MSG_BUFFER_SIZE) {
         debug3("Adding to buffer %d", debug);
-        char *a = &(buff[len[VAR_BUFF]]);
-        len[VAR_BUFF] += (len[VAR_KEY] + len[VAR_NAME] + len[VAR_VAL] + 4);
-        sprintf(a, "<%s|%s|%s>", varBuff[VAR_KEY], varBuff[VAR_NAME], varBuff[VAR_VAL]);
+        sendBuff[len] = accBuff;
+        len++;
     } else {
         error("Full buffer\n");
         return;
     }
-    if ( clearKeyBuff ){
-        memset(varBuff[VAR_KEY], 0, VAR_BUFFER_SIZE);
-        len[VAR_KEY] = 0;
+    if (clearKeyBuff) {
+        memset(accBuff.key, 0, MAX_KEY_LEN);
     }
-    memset(varBuff[VAR_NAME], 0, VAR_BUFFER_SIZE);
-    memset(varBuff[VAR_VAL], 0, VAR_BUFFER_SIZE);
-    len[VAR_NAME] = len[VAR_VAL] = 0;
+    memset(accBuff.name, 0, MAX_NAME_LEN);
+    memset(accBuff.val, 0, MAX_VAL_LEN);
 }
 
-void TransformerIf::clearBufs(){
-    memset(varBuff, 0, VAR_BUFFER_SIZE * (VAR_VAL + 1));
-    len[VAR_KEY] = len[VAR_NAME] = len[VAR_VAL] = 0;
+void TransformerIf::clearBufs() {
+    memset(&accBuff, 0, sizeof(accBuff));
 }
 
 void TransformerIf::itarate() {
 
 }
 
-char *TransformerIf::getBuffPtr() {
-    return buff;
+transfer_t *TransformerIf::getBuffPtr() {
+    return sendBuff;
 }
 
 size_t TransformerIf::getAndResetBuffLen() {
-    size_t tmp = len[VAR_BUFF];
-    len[VAR_BUFF] = 0;
+    size_t tmp = sizeof(transfer_t) * len;
+    debug("size of sendBuff is %lu ( %lu",len,tmp);
+    len = 0;
     return tmp;
 }

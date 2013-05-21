@@ -20,7 +20,6 @@ using namespace std;
 
 
 class Watchdog{
-    FILE *inFile;
 public:
     Watchdog();
     Watchdog(const string input);
