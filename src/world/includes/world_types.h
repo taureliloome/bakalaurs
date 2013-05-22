@@ -99,7 +99,7 @@ typedef struct nucleotide_s {
         struct {
             struct nucleotide_s *jump;
             struct nucleotide_s *ret;
-        } ret;
+        } jump;
     }subvalues;
     uint64_t id;     // Id of current child, these are used to compare, balance and find nucleotides
 

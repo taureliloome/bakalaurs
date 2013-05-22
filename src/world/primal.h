@@ -14,21 +14,23 @@
 #define _PRIMAL_H_
 #include <stdlib.h>
 #include <stdio.h>
-#include <string>
+#include <string.h>
 #include <iostream>
+#include "world_types.h"
 
 extern "C"{
-#include "avl.h"
+#include <avl.h>
 }
 using namespace std;
 
 
 class Primal {
-    avl_tree_t primal;
+    avl_tree_t *primal;
 public:
     Primal();
-    Primal(const string input);
     ~Primal();
+    int _compare(const void *left, const void *right);
+    void _destroy(void *ptr);
 };
 
 #endif /* _PRIMAL_H_ */
