@@ -24,7 +24,7 @@ string Organism::createCompilationString(const string input){
 	output.append(" -o ./results/");
 	output.append(outputCode);
 	output.append(".bin");
-	debug3(output);
+	debug3(output.c_str());
 	return output;
 }
 
@@ -34,7 +34,7 @@ string Organism::createCompilationString(const char *input){
 	output.append(" -o ./results/");
 	output.append(outputCode);
 	output.append(".bin");
-	debug3(output);
+	debug3(output.c_str());
 	return output;
 }
 
