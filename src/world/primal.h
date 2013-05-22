@@ -25,9 +25,12 @@ using namespace std;
 
 
 class Primal {
+    static bool instanceFlag;
+    static Primal *self;
     avl_tree_t *primal;
-public:
     Primal();
+public:
+    static Primal *getInstance();
     ~Primal();
     int _compare(const void *left, const void *right);
     void _destroy(void *ptr);

@@ -1,0 +1,67 @@
+
+string		+
+void		+
+char		+
+short		+
+int			+
+long		+
+float		+
+double		+
+signed		+
+unsigned	+
+bool		+
+
+function	+
+enum		+
+struct		+
+if			+
+elif		+
+else		+
+switch		+
+
+do_while	+
+while		+
+for			+
+
+return		+
+break		+
+continue	+
+goto		+
+
+block_st	+
+block_en	+
+fnc_srt		+
+fnc_end		+
+fnc_name	+
+
+=			+
++=			+
+-=			+
+*=			+
+/=			+
+%=			+
+++			+
+--			+
+<<=			+
+>>=			+
+&=			+
+|=			+
+^=			+
+
+==			+
+!=			+
+<			+
+>			+
+<=			+
+>=			+
+
++			+
+-			+
+*			+
+/			+
+%			+
+!			+
+&			+
+|			+
+~			+
+ptr			+

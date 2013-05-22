@@ -64,7 +64,9 @@ void TransformerIf::addToBuff(int debug, bool clearKeyBuff) {
         info("nothing to add %d", debug);
     } else if (len < MSG_BUFFER_SIZE) {
         debug3("Adding to buffer %d", debug);
-        sendBuff[len] = accBuff;
+        if (strlen(accBuff.name) > 0 || strlen(accBuff.val)) {
+            sendBuff[len] = accBuff;
+        }
         len++;
     } else {
         error("Full buffer\n");
@@ -91,7 +93,7 @@ transfer_t *TransformerIf::getBuffPtr() {
 
 size_t TransformerIf::getAndResetBuffLen() {
     size_t tmp = sizeof(transfer_t) * len;
-    debug("size of sendBuff is %lu ( %lu",len,tmp);
+    debug("size of sendBuff is %lu ( %lu", len, tmp);
     len = 0;
     return tmp;
 }

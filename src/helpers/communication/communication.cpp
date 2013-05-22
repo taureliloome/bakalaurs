@@ -24,7 +24,6 @@ Communicator *Communicator::getInstance(bool setServer, const char *setName) {
     if (!instanceFlag) {
         self = new Communicator(setServer, setName);
         instanceFlag = true;
-        return self;
     }
     return self;
 }

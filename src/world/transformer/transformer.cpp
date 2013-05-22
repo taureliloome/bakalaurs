@@ -21,7 +21,6 @@ int Transformer::transform(transfer_t *msg, size_t total) {
         char val[NUCLEOTIDE_NAME_MAX_LEN] = { '\0' };
         total /= sizeof(transfer_t);
         while (rd < total) {
-            rd++;
             debug3("%s %s %s", msg[rd].key, msg[rd].name, msg[rd].val);
 
             nucleotide = createNucleotide(msg[rd].key, msg[rd].name, msg[rd].val);
@@ -32,6 +31,7 @@ int Transformer::transform(transfer_t *msg, size_t total) {
                 error("no nucleotide allocated");
                 return 1;
             }
+            rd++;
         }
         return 0;
     } else {
@@ -53,6 +53,18 @@ const char *Transformer::subtypeToStr(nucleotide_type_e type, nucleotide_u subty
         break;
     case NUCLEO_TYPE_JUMP:
         return jumpToStr(subtype.jump);
+        break;
+    case NUCLEO_TYPE_SUPPORT:
+        return supportToStr(subtype.support);
+        break;
+    case NUCLEO_TYPE_ASSIGNS:
+        return assignsToStr(subtype.assigns);
+        break;
+    case NUCLEO_TYPE_COMPARE:
+        return compareToStr(subtype.compare);
+        break;
+    case NUCLEO_TYPE_OPERATOR:
+        return operatorToStr(subtype.oper);
         break;
     }
     return "UNDEFINED";
@@ -169,6 +181,131 @@ const char *Transformer::jumpToStr(nucleotide_jump_e jump) {
     return "UNDEFINED";
 }
 
+const char *Transformer::supportToStr(nucleotide_support_e support) {
+    switch (support) {
+    case NUCLEO_SUPPORT_BLOCK_START:
+        return "BLOCK_START";
+        break;
+    case NUCLEO_SUPPORT_BLOCK_END:
+        return "BLOCK_END";
+        break;
+    case NUCLEO_SUPPORT_FUNC_SRT:
+        return "FUNC_SRT";
+        break;
+    case NUCLEO_SUPPORT_FUNC_END:
+        return "FUNC_END";
+        break;
+    case NUCLEO_SUPPORT_FUNC_NAME:
+        return "FUNC_NAME";
+        break;
+    }
+    return "UNDEFINED";
+}
+
+const char *Transformer::assignsToStr(nucleotide_assigns_e assings) {
+    switch (assings) {
+    case NUCLEO_ASSIGNS_IS:
+        return "ASSIGNS_IS";
+        break;
+    case NUCLEO_ASSIGNS_SUM:
+        return "ASSIGNS_SUM";
+        break;
+    case NUCLEO_ASSIGNS_MIN:
+        return "ASSIGNS_MIN";
+        break;
+    case NUCLEO_ASSIGNS_MULTIPLY:
+        return "ASSIGNS_MULTIPLY";
+        break;
+    case NUCLEO_ASSIGNS_DEVIDE:
+        return "ASSIGNS_DEVIDE";
+        break;
+    case NUCLEO_ASSIGNS_MOD:
+        return "ASSIGNS_MOD";
+        break;
+    case NUCLEO_ASSIGNS_PLUS_ONE:
+        return "ASSIGNS_PLUS_ONE";
+        break;
+    case NUCLEO_ASSIGNS_MINUS_ONE:
+        return "ASSIGNS_MINUS_ONE";
+        break;
+    case NUCLEO_ASSIGNS_SHIFT_LEFT:
+        return "ASSIGNS_SHIFT_LEFT";
+        break;
+    case NUCLEO_ASSIGNS_SHIFT_RIGHT:
+        return "ASSIGNS_SHIFT_RIGHT";
+        break;
+    case NUCLEO_ASSIGNS_AND:
+        return "ASSIGNS_AND";
+        break;
+    case NUCLEO_ASSIGNS_OR:
+        return "ASSIGNS_OR";
+        break;
+    case NUCLEO_ASSIGNS_XOR:
+        return "ASSIGNS_XOR";
+        break;
+    }
+    return "UNDEFINED";
+}
+
+const char *Transformer::compareToStr(nucleotide_compare_e compare) {
+    switch (compare) {
+    case NUCLEO_COMPARE_EQUAL:
+        return "COMPARE_EQUAL";
+        break;
+    case NUCLEO_COMPARE_NOT_EQ:
+        return "COMPARE_NOT_EQ";
+        break;
+    case NUCLEO_COMPARE_LESS:
+        return "COMPARE_LESS";
+        break;
+    case NUCLEO_COMPARE_MORE:
+        return "COMPARE_MORE";
+        break;
+    case NUCLEO_COMPARE_LESS_EQ:
+        return "COMPARE_LESS_EQ";
+        break;
+    case NUCLEO_COMPARE_MORE_EQ:
+        return "COMPARE_MORE_EQ";
+        break;
+    }
+    return "UNDEFINED";
+}
+const char *Transformer::operatorToStr(nucleotide_operator_e oper) {
+    switch (oper) {
+    case NUCLEO_OPERATOR_PLUS:
+        return "OPERATOR_PLUS";
+        break;
+    case NUCLEO_OPERATOR_MINUS:
+        return "OPERATOR_MINUS";
+        break;
+    case NUCLEO_OPERATOR_TIMES:
+        return "OPERATOR_TIMES";
+        break;
+    case NUCLEO_OPERATOR_DEVIDE:
+        return "OPERATOR_DEVIDE";
+        break;
+    case NUCLEO_OPERATOR_MOD:
+        return "OPERATOR_MOD";
+        break;
+    case NUCLEO_OPERATOR_NOT:
+        return "OPERATOR_NOT";
+        break;
+    case NUCLEO_OPERATOR_AND:
+        return "OPERATOR_AND";
+        break;
+    case NUCLEO_OPERATOR_OR:
+        return "OPERATOR_OR";
+        break;
+    case NUCLEO_OPERATOR_INVERT:
+        return "OPERATOR_INVERT";
+        break;
+    case NUCLEO_OPERATOR_PTR:
+        return "OPERATOR_PTR";
+        break;
+    }
+    return "UNDEFINED";
+}
+
 nucleotide_type_e Transformer::strToType(const char *type, uint32_t *subtype) {
     *subtype = 0;
     *subtype = strToBase(type);
@@ -186,6 +323,22 @@ nucleotide_type_e Transformer::strToType(const char *type, uint32_t *subtype) {
     *subtype = strToLoop(type);
     if (*subtype != NUCLEO_JUMP_UNDEFINED) {
         return NUCLEO_TYPE_JUMP;
+    }
+    *subtype = strToSupport(type);
+    if (*subtype != NUCLEO_SUPPORT_UNDEFINED) {
+        return NUCLEO_TYPE_SUPPORT;
+    }
+    *subtype = strToAssigns(type);
+    if (*subtype != NUCLEO_ASSIGNS_UNDEFINED) {
+        return NUCLEO_TYPE_ASSIGNS;
+    }
+    *subtype = strToCompare(type);
+    if (*subtype != NUCLEO_COMPARE_UNDEFINED) {
+        return NUCLEO_TYPE_COMPARE;
+    }
+    *subtype = strToOperator(type);
+    if (*subtype != NUCLEO_OPERATOR_UNDEFINED) {
+        return NUCLEO_TYPE_OPERATOR;
     }
     return NUCLEO_TYPE_UNDEFINED;
 }
@@ -254,6 +407,90 @@ nucleotide_jump_e Transformer::strToJump(const char *jump) {
         return NUCLEO_JUMP_GOTO;
     }
     return NUCLEO_JUMP_UNDEFINED;
+}
+
+nucleotide_support_e Transformer::strToSupport(const char *support) {
+    if (!strcmp(support, "block_st"))
+        return NUCLEO_SUPPORT_BLOCK_START;
+    else if (!strcmp(support, "block_en"))
+        return NUCLEO_SUPPORT_BLOCK_END;
+    else if (!strcmp(support, "fnc_srt"))
+        return NUCLEO_SUPPORT_FUNC_SRT;
+    else if (!strcmp(support, "fnc_end"))
+        return NUCLEO_SUPPORT_FUNC_END;
+    else if (!strcmp(support, "fnc_name"))
+        return NUCLEO_SUPPORT_FUNC_NAME;
+    return NUCLEO_SUPPORT_UNDEFINED;
+}
+
+nucleotide_assigns_e Transformer::strToAssigns(const char *assigns) {
+    if (!strcmp(assigns, "="))
+        return NUCLEO_ASSIGNS_IS;
+    else if (!strcmp(assigns, "+="))
+        return NUCLEO_ASSIGNS_SUM;
+    else if (!strcmp(assigns, "-="))
+        return NUCLEO_ASSIGNS_MIN;
+    else if (!strcmp(assigns, "*="))
+        return NUCLEO_ASSIGNS_MULTIPLY;
+    else if (!strcmp(assigns, "/="))
+        return NUCLEO_ASSIGNS_DEVIDE;
+    else if (!strcmp(assigns, "%="))
+        return NUCLEO_ASSIGNS_MOD;
+    else if (!strcmp(assigns, "++"))
+        return NUCLEO_ASSIGNS_PLUS_ONE;
+    else if (!strcmp(assigns, "--"))
+        return NUCLEO_ASSIGNS_MINUS_ONE;
+    else if (!strcmp(assigns, "<<="))
+        return NUCLEO_ASSIGNS_SHIFT_LEFT;
+    else if (!strcmp(assigns, ">>="))
+        return NUCLEO_ASSIGNS_SHIFT_RIGHT;
+    else if (!strcmp(assigns, "&="))
+        return NUCLEO_ASSIGNS_AND;
+    else if (!strcmp(assigns, "|="))
+        return NUCLEO_ASSIGNS_OR;
+    else if (!strcmp(assigns, "^="))
+        return NUCLEO_ASSIGNS_XOR;
+    return NUCLEO_ASSIGNS_UNDEFINED;
+}
+
+nucleotide_compare_e Transformer::strToCompare(const char *compare) {
+    if (!strcmp(compare, "=="))
+        return NUCLEO_COMPARE_EQUAL;
+    else if (!strcmp(compare, "!="))
+        return NUCLEO_COMPARE_NOT_EQ;
+    else if (!strcmp(compare, "<"))
+        return NUCLEO_COMPARE_LESS;
+    else if (!strcmp(compare, ">"))
+        return NUCLEO_COMPARE_MORE;
+    else if (!strcmp(compare, "<="))
+        return NUCLEO_COMPARE_LESS_EQ;
+    else if (!strcmp(compare, ">="))
+        return NUCLEO_COMPARE_MORE_EQ;
+    return NUCLEO_COMPARE_UNDEFINED;
+}
+
+nucleotide_operator_e Transformer::strToOperator(const char *oper) {
+    if (!strcmp(oper, "+"))
+        return NUCLEO_OPERATOR_PLUS;
+    else if (!strcmp(oper, "-"))
+        return NUCLEO_OPERATOR_MINUS;
+    else if (!strcmp(oper, "*"))
+        return NUCLEO_OPERATOR_TIMES;
+    else if (!strcmp(oper, "/"))
+        return NUCLEO_OPERATOR_DEVIDE;
+    else if (!strcmp(oper, "%"))
+        return NUCLEO_OPERATOR_MOD;
+    else if (!strcmp(oper, "!"))
+        return NUCLEO_OPERATOR_NOT;
+    else if (!strcmp(oper, "&"))
+        return NUCLEO_OPERATOR_AND;
+    else if (!strcmp(oper, "|"))
+        return NUCLEO_OPERATOR_OR;
+    else if (!strcmp(oper, "~"))
+        return NUCLEO_OPERATOR_INVERT;
+    else if (!strcmp(oper, "ptr"))
+        return NUCLEO_OPERATOR_PTR;
+    return NUCLEO_OPERATOR_UNDEFINED;
 }
 
 nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, const char *val) {

@@ -13,6 +13,10 @@ typedef enum {
     NUCLEO_TYPE_CONTROL,
     NUCLEO_TYPE_LOOP,
     NUCLEO_TYPE_JUMP,
+    NUCLEO_TYPE_SUPPORT,
+    NUCLEO_TYPE_ASSIGNS,
+    NUCLEO_TYPE_COMPARE,
+    NUCLEO_TYPE_OPERATOR,
     NUCLEO_TYPE_UNDEFINED
 } nucleotide_type_e;
 
@@ -34,6 +38,8 @@ typedef enum {
 
 typedef enum {
     NUCLEO_CONTROL_FUNCTION = 0,
+    NUCLEO_CONTROL_ENUM,
+    NUCLEO_CONTROL_STRUCT,
     NUCLEO_CONTROL_IF,
     NUCLEO_CONTROL_ELIF,
     NUCLEO_CONTROL_ELSE,
@@ -53,6 +59,56 @@ typedef enum {
     NUCLEO_JUMP_UNDEFINED
 } nucleotide_jump_e;
 
+typedef enum {
+    NUCLEO_SUPPORT_BLOCK_START = 0,
+    NUCLEO_SUPPORT_BLOCK_END,
+    NUCLEO_SUPPORT_FUNC_SRT,
+    NUCLEO_SUPPORT_FUNC_END,
+    NUCLEO_SUPPORT_FUNC_NAME,
+    NUCLEO_SUPPORT_UNDEFINED
+} nucleotide_support_e;
+
+typedef enum {
+    NUCLEO_ASSIGNS_IS = 0,
+    NUCLEO_ASSIGNS_SUM,
+    NUCLEO_ASSIGNS_MIN,
+    NUCLEO_ASSIGNS_MULTIPLY,
+    NUCLEO_ASSIGNS_DEVIDE,
+    NUCLEO_ASSIGNS_MOD,
+    NUCLEO_ASSIGNS_PLUS_ONE,
+    NUCLEO_ASSIGNS_MINUS_ONE,
+    NUCLEO_ASSIGNS_SHIFT_LEFT,
+    NUCLEO_ASSIGNS_SHIFT_RIGHT,
+    NUCLEO_ASSIGNS_AND,
+    NUCLEO_ASSIGNS_OR,
+    NUCLEO_ASSIGNS_XOR,
+    NUCLEO_ASSIGNS_UNDEFINED
+} nucleotide_assigns_e;
+
+typedef enum {
+    NUCLEO_COMPARE_EQUAL = 0,
+    NUCLEO_COMPARE_NOT_EQ,
+    NUCLEO_COMPARE_LESS,
+    NUCLEO_COMPARE_MORE,
+    NUCLEO_COMPARE_LESS_EQ,
+    NUCLEO_COMPARE_MORE_EQ,
+    NUCLEO_COMPARE_UNDEFINED
+} nucleotide_compare_e;
+
+typedef enum {
+    NUCLEO_OPERATOR_PLUS = 0,
+    NUCLEO_OPERATOR_MINUS,
+    NUCLEO_OPERATOR_TIMES,
+    NUCLEO_OPERATOR_DEVIDE,
+    NUCLEO_OPERATOR_MOD,
+    NUCLEO_OPERATOR_NOT,
+    NUCLEO_OPERATOR_AND,
+    NUCLEO_OPERATOR_OR,
+    NUCLEO_OPERATOR_INVERT,
+    NUCLEO_OPERATOR_PTR,
+    NUCLEO_OPERATOR_UNDEFINED
+} nucleotide_operator_e;
+
 typedef struct transfer_s {
     char key[MAX_KEY_LEN];
     char name[MAX_NAME_LEN];
@@ -65,6 +121,10 @@ typedef union {
     nucleotide_control_e control;
     nucleotide_loop_e loop;
     nucleotide_jump_e jump;
+    nucleotide_support_e support;
+    nucleotide_assigns_e assigns;
+    nucleotide_compare_e compare;
+    nucleotide_operator_e oper;
     uint32_t raw;
 } nucleotide_u;
 
@@ -79,7 +139,7 @@ typedef union {
     unsigned usg;
     bool b;
     char str[MAX_VAL_LEN];
-}nucleotide_base_u;
+} nucleotide_base_u;
 
 typedef struct nucleotide_s {
     char file[FILE_NAME_MAX_LEN];                   // Name of the source code file
@@ -100,7 +160,7 @@ typedef struct nucleotide_s {
             struct nucleotide_s *jump;
             struct nucleotide_s *ret;
         } jump;
-    }subvalues;
+    } subvalues;
     uint64_t id;     // Id of current child, these are used to compare, balance and find nucleotides
 
     nucleotide_s *parent;                           // Parent block, NULL if it's main();

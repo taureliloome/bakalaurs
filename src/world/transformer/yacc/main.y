@@ -109,13 +109,13 @@ generic_association
 postfix_expression
 	: primary_expression 
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' { transformerIf.addKey("func_srt",23); transformerIf.addToBuff(0); transformerIf.addKey("func_end",73); transformerIf.addToBuff(1); } ')' 
+	| postfix_expression '(' { transformerIf.addKey("fnc_srt",23); transformerIf.addToBuff(0); transformerIf.addKey("fnc_end",73); transformerIf.addToBuff(1); } ')' 
 	| postfix_expression '('
 		{ transformerIf.addKey("func_srt",24); transformerIf.addToBuff(2);}
 		argument_expression_list ')'
-	  	{ transformerIf.addKey("func_end",25); transformerIf.addToBuff(3); }
+	  	{ transformerIf.addKey("fnc_end",25); transformerIf.addToBuff(3); }
 	| postfix_expression '.' IDENTIFIER
-	| postfix_expression PTR_OP IDENTIFIER { transformerIf.addKey("PTR",26); }
+	| postfix_expression PTR_OP IDENTIFIER { transformerIf.addKey("ptr",26); }
 	| postfix_expression INC_OP	{ transformerIf.addKey("++",27); }
 	| postfix_expression DEC_OP { transformerIf.addKey("--",28); }
 	| '(' type_name ')' '{' initializer_list '}'
@@ -430,7 +430,7 @@ parameter_declaration
 	;
 
 identifier_list
-	: IDENTIFIER { transformerIf.addParam("IDENT",yytext,"",77);  }
+	: IDENTIFIER
 	| identifier_list ',' IDENTIFIER
 	;
 
@@ -516,8 +516,8 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' { transformerIf.addKey("oBlock",60); transformerIf.addToBuff(6); transformerIf.addKey("eBlock",61); transformerIf.addToBuff(7); } '}' 
-	| '{' { transformerIf.addKey("oBlock",62); transformerIf.addToBuff(8); transformerIf.addName(yytext,62); } block_item_list { transformerIf.addKey("eBlock",63); transformerIf.addToBuff(10); } '}'
+	: '{' { transformerIf.addKey("block_st",60); transformerIf.addToBuff(6); transformerIf.addKey("block_en",61); transformerIf.addToBuff(7); } '}' 
+	| '{' { transformerIf.addKey("block_st",62); transformerIf.addToBuff(8); transformerIf.addName(yytext,62); } block_item_list { transformerIf.addKey("block_en",63); transformerIf.addToBuff(10); } '}'
 	;
 
 block_item_list
@@ -542,20 +542,20 @@ selection_statement
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement { transformerIf.addKey("WHILE",64); transformerIf.addToBuff(11); }
-	| DO statement WHILE '(' expression ')' ';' { transformerIf.addKey("DO-WHILE",65); transformerIf.addToBuff(12); }
-	| FOR '(' expression_statement expression_statement ')' statement { transformerIf.addKey("FOR",66); transformerIf.addToBuff(13); }
-	| FOR '(' expression_statement expression_statement expression ')' statement  { transformerIf.addKey("FOR",67); transformerIf.addToBuff(14); }
-	| FOR '(' declaration expression_statement ')' statement { transformerIf.addKey("FOR",68); transformerIf.addToBuff(15); }
-	| FOR '(' declaration expression_statement expression ')' statement { transformerIf.addKey("FOR",69); transformerIf.addToBuff(16); }
+	: WHILE '(' expression ')' statement { transformerIf.addKey("while",64); transformerIf.addToBuff(11); }
+	| DO statement WHILE '(' expression ')' ';' { transformerIf.addKey("do_while",65); transformerIf.addToBuff(12); }
+	| FOR '(' expression_statement expression_statement ')' statement { transformerIf.addKey("for",66); transformerIf.addToBuff(13); }
+	| FOR '(' expression_statement expression_statement expression ')' statement  { transformerIf.addKey("for",67); transformerIf.addToBuff(14); }
+	| FOR '(' declaration expression_statement ')' statement { transformerIf.addKey("for",68); transformerIf.addToBuff(15); }
+	| FOR '(' declaration expression_statement expression ')' statement { transformerIf.addKey("for",69); transformerIf.addToBuff(16); }
 	;
 
 jump_statement
-	: GOTO IDENTIFIER ';'
-	| CONTINUE ';' { transformerIf.addKey("CONTINUE",70); transformerIf.addToBuff(17); }
-	| BREAK ';' { transformerIf.addKey("BREAK",71); transformerIf.addToBuff(18); }
-	| RETURN { transformerIf.addKey("RETURN",72); }';' { transformerIf.addToBuff(19); }
-	| RETURN { transformerIf.addParam("RETURN",yytext,yytext,78); } expression ';'
+	: GOTO IDENTIFIER ';' { transformerIf.addKey("goto",70); transformerIf.addToBuff(17); }
+	| CONTINUE ';' { transformerIf.addKey("continue",70); transformerIf.addToBuff(17); }
+	| BREAK ';' { transformerIf.addKey("break",71); transformerIf.addToBuff(18); }
+	| RETURN { transformerIf.addKey("return",72); }';' { transformerIf.addToBuff(19); }
+	| RETURN { transformerIf.addParam("return",yytext,yytext,78); } expression ';'
 	;
 
 translation_unit

@@ -1,18 +1,29 @@
 #include "primal.h"
 
+bool Primal::instanceFlag = false;
+Primal* Primal::self = NULL;
 
 static int compare(const void *left, const void *right)
 {
-    return Primal::_compare(left, right);
+    return (Primal::getInstance())->_compare(left, right);
 }
 
 static void destroy(void *ptr)
 {
-    Primal::_destroy(ptr);
+    (Primal::getInstance())->_destroy(ptr);
+}
+
+Primal *Primal::getInstance(){
+    if (!instanceFlag) {
+        self = new Primal();
+        instanceFlag = true;
+    }
+    return self;
 }
 
 Primal::Primal()
 {
+    primal = NULL;
     avl_init_tree(primal, compare, destroy);
 }
 
