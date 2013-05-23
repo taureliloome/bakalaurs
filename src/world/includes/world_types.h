@@ -141,13 +141,18 @@ typedef union {
     char str[MAX_VAL_LEN];
 } nucleotide_base_u;
 
+typedef struct nucleotide_base_s{
+    nucleotide_base_u val;
+    bool isSet;
+}nucleotide_base_t;
+
 typedef struct nucleotide_s {
     char file[FILE_NAME_MAX_LEN];                   // Name of the source code file
     char name[NUCLEOTIDE_NAME_MAX_LEN];             // Variable name.
     nucleotide_type_e type;                         // Type of nucleotide see @ref nucleotide_type_e
     nucleotide_u subtype;
     union {
-        nucleotide_base_u base;
+        nucleotide_base_s base;
         struct {
             struct nucleotide_s *statement; // Statement for this block to be active, NULL if not _IF or _ELIF
             struct nucleotide_s *child;                             // First child block
@@ -158,7 +163,6 @@ typedef struct nucleotide_s {
         } loop;
         struct {
             struct nucleotide_s *jump;
-            struct nucleotide_s *ret;
         } jump;
     } subvalues;
     uint64_t id;     // Id of current child, these are used to compare, balance and find nucleotides

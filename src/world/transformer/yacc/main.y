@@ -23,11 +23,11 @@ int yydebug;
  
 void yyerror(const char *str)
 {
-        fprintf(stderr,"error: %s\n",str);
+	fprintf(stderr,"error: %s\n",str);
 }
 
 static Communicator *self = NULL;
-TransformerIf transformerIf(MSG_DEBUG3);
+TransformerIf transformerIf(MSG_DEBUG2);
 int main()
 {
     yyparse();
@@ -78,7 +78,7 @@ primary_expression
 	;
 
 constant
-	: I_CONSTANT		/* includes character_constant */
+	: I_CONSTANT { transformerIf.addParam("int",yytext,yytext,80); }  /* includes character_constant */
 	| F_CONSTANT
 	| ENUMERATION_CONSTANT	/* after it has been defined as such */
 	;
@@ -554,7 +554,7 @@ jump_statement
 	: GOTO IDENTIFIER ';' { transformerIf.addKey("goto",70); transformerIf.addToBuff(17); }
 	| CONTINUE ';' { transformerIf.addKey("continue",70); transformerIf.addToBuff(17); }
 	| BREAK ';' { transformerIf.addKey("break",71); transformerIf.addToBuff(18); }
-	| RETURN { transformerIf.addKey("return",72); }';' { transformerIf.addToBuff(19); }
+	| RETURN { transformerIf.addKey("return",72); transformerIf.addToBuff(19); } ';' 
 	| RETURN { transformerIf.addParam("return",yytext,yytext,78); } expression ';'
 	;
 

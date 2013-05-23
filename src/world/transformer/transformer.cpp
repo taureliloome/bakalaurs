@@ -16,9 +16,6 @@ int Transformer::transform(transfer_t *msg, size_t total) {
     if (msg) {
         size_t rd = 0;
         nucleotide_t *nucleotide = NULL;
-        char key[NUCLEOTIDE_NAME_MAX_LEN] = { '\0' };
-        char name[NUCLEOTIDE_NAME_MAX_LEN] = { '\0' };
-        char val[NUCLEOTIDE_NAME_MAX_LEN] = { '\0' };
         total /= sizeof(transfer_t);
         while (rd < total) {
             debug3("%s %s %s", msg[rd].key, msg[rd].name, msg[rd].val);
@@ -306,38 +303,37 @@ const char *Transformer::operatorToStr(nucleotide_operator_e oper) {
     return "UNDEFINED";
 }
 
-nucleotide_type_e Transformer::strToType(const char *type, uint32_t *subtype) {
-    *subtype = 0;
-    *subtype = strToBase(type);
-    if (*subtype != NUCLEO_BASE_UNDEFINED) {
+nucleotide_type_e Transformer::strToType(const char *type, nucleotide_u *subtype) {
+    subtype->base = strToBase(type);
+    if (subtype->base != NUCLEO_BASE_UNDEFINED) {
         return NUCLEO_TYPE_BASE;
     }
-    *subtype = strToControl(type);
-    if (*subtype != NUCLEO_CONTROL_UNDEFINED) {
+    subtype->control = strToControl(type);
+    if (subtype->control != NUCLEO_CONTROL_UNDEFINED) {
         return NUCLEO_TYPE_CONTROL;
     }
-    *subtype = strToLoop(type);
-    if (*subtype != NUCLEO_LOOP_UNDEFINED) {
+    subtype->loop = strToLoop(type);
+    if (subtype->loop != NUCLEO_LOOP_UNDEFINED) {
         return NUCLEO_TYPE_LOOP;
     }
-    *subtype = strToLoop(type);
-    if (*subtype != NUCLEO_JUMP_UNDEFINED) {
+    subtype->jump = strToJump(type);
+    if (subtype->jump != NUCLEO_JUMP_UNDEFINED) {
         return NUCLEO_TYPE_JUMP;
     }
-    *subtype = strToSupport(type);
-    if (*subtype != NUCLEO_SUPPORT_UNDEFINED) {
+    subtype->support = strToSupport(type);
+    if (subtype->support != NUCLEO_SUPPORT_UNDEFINED) {
         return NUCLEO_TYPE_SUPPORT;
     }
-    *subtype = strToAssigns(type);
-    if (*subtype != NUCLEO_ASSIGNS_UNDEFINED) {
+    subtype->assigns = strToAssigns(type);
+    if (subtype->assigns != NUCLEO_ASSIGNS_UNDEFINED) {
         return NUCLEO_TYPE_ASSIGNS;
     }
-    *subtype = strToCompare(type);
-    if (*subtype != NUCLEO_COMPARE_UNDEFINED) {
+    subtype->compare = strToCompare(type);
+    if (subtype->compare != NUCLEO_COMPARE_UNDEFINED) {
         return NUCLEO_TYPE_COMPARE;
     }
-    *subtype = strToOperator(type);
-    if (*subtype != NUCLEO_OPERATOR_UNDEFINED) {
+    subtype->oper = strToOperator(type);
+    if (subtype->oper != NUCLEO_OPERATOR_UNDEFINED) {
         return NUCLEO_TYPE_OPERATOR;
     }
     return NUCLEO_TYPE_UNDEFINED;
@@ -397,13 +393,18 @@ nucleotide_loop_e Transformer::strToLoop(const char *loop) {
 }
 
 nucleotide_jump_e Transformer::strToJump(const char *jump) {
+    debug3("%s",jump);
     if (!strcmp(jump, "return")) {
+        debug3("%d",NUCLEO_JUMP_RETURN);
         return NUCLEO_JUMP_RETURN;
     } else if (!strcmp(jump, "break")) {
+        debug3("%d",NUCLEO_JUMP_BREAK);
         return NUCLEO_JUMP_BREAK;
     } else if (!strcmp(jump, "continue")) {
+        debug3("%d",NUCLEO_JUMP_CONTINUE);
         return NUCLEO_JUMP_CONTINUE;
     } else if (!strcmp(jump, "goto")) {
+        debug3("%d",NUCLEO_JUMP_GOTO);
         return NUCLEO_JUMP_GOTO;
     }
     return NUCLEO_JUMP_UNDEFINED;
@@ -494,48 +495,92 @@ nucleotide_operator_e Transformer::strToOperator(const char *oper) {
 }
 
 nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, const char *val) {
-    nucleotide_t *nucleotide = (nucleotide_t *) malloc(sizeof(nucleotide));
+    nucleotide_t *nucleotide = (nucleotide_t *) malloc(sizeof(nucleotide_t));
     if (nucleotide == NULL)
         return NULL;
-    uint32_t subtype;
+    memset(nucleotide, 0, sizeof(nucleotide_t));
+    nucleotide_u subtype;
     nucleotide->type = strToType(type, &subtype);
+    debug3("type:%u %u",nucleotide->type, subtype.raw);
     strcpy(nucleotide->name, name);
-    nucleotide->subtype.raw = subtype;
+    nucleotide->subtype.raw = subtype.raw;
 
     if (val) {
         switch (nucleotide->type) {
         case NUCLEO_TYPE_BASE:
+            nucleotide->subvalues.base.isSet = true;
             switch (nucleotide->subtype.base) {
             case NUCLEO_BASE_STRING:
-                strcpy(nucleotide->subvalues.base.str, val);
+                strcpy(nucleotide->subvalues.base.val.str, val);
                 break;
             case NUCLEO_BASE_VOID:
                 break;
             case NUCLEO_BASE_SIGNED:
-                sscanf(val, "%d", &nucleotide->subvalues.base.sg);
+                sscanf(val, "%d", &nucleotide->subvalues.base.val.sg);
                 break;
             case NUCLEO_BASE_INT:
-                sscanf(val, "%d", &nucleotide->subvalues.base.i);
+                sscanf(val, "%d", &nucleotide->subvalues.base.val.i);
                 break;
             case NUCLEO_BASE_CHAR:
-                sscanf(val, "%c", &nucleotide->subvalues.base.c);
+                sscanf(val, "%c", &nucleotide->subvalues.base.val.c);
                 break;
             case NUCLEO_BASE_FLOAT:
-                sscanf(val, "%f", &nucleotide->subvalues.base.f);
+                sscanf(val, "%f", &nucleotide->subvalues.base.val.f);
                 break;
             case NUCLEO_BASE_DOUBLE:
-                sscanf(val, "%lf", &nucleotide->subvalues.base.d);
+                sscanf(val, "%lf", &nucleotide->subvalues.base.val.d);
                 break;
             case NUCLEO_BASE_UNSIGNED:
-                sscanf(val, "%u", &nucleotide->subvalues.base.usg);
+                sscanf(val, "%u", &nucleotide->subvalues.base.val.usg);
                 break;
             case NUCLEO_BASE_BOOL:
                 if (strcmp("true", val))
-                    nucleotide->subvalues.base.b = true;
+                    nucleotide->subvalues.base.val.b = true;
                 else
-                    nucleotide->subvalues.base.b = false;
+                    nucleotide->subvalues.base.val.b = false;
+                break;
+            case NUCLEO_BASE_UNDEFINED:
+                nucleotide->subvalues.base.isSet = false;
+
+            }
+            break;
+        case NUCLEO_TYPE_CONTROL:
+            switch (nucleotide->subtype.control) {
+            case NUCLEO_CONTROL_FUNCTION:
+                nucleotide->subvalues.control.child = NULL;
+                nucleotide->subvalues.control.statement = NULL;
                 break;
             }
+            break;
+        case NUCLEO_TYPE_LOOP:
+            switch (nucleotide->subtype.loop) {
+            case NUCLEO_LOOP_DO:
+            case NUCLEO_LOOP_WHILE:
+            case NUCLEO_LOOP_FOR:
+                nucleotide->subvalues.loop.child = NULL;
+                nucleotide->subvalues.loop.statement = NULL;
+                break;
+            }
+            break;
+        case NUCLEO_TYPE_JUMP:
+            switch (nucleotide->subtype.jump) {
+            case NUCLEO_JUMP_RETURN:
+            case NUCLEO_JUMP_BREAK:
+            case NUCLEO_JUMP_CONTINUE:
+            case NUCLEO_JUMP_GOTO:
+                nucleotide->subvalues.jump.jump = NULL;
+                break;
+            }
+            break;
+        case NUCLEO_TYPE_SUPPORT:
+            break;
+        case NUCLEO_TYPE_ASSIGNS:
+            break;
+        case NUCLEO_TYPE_COMPARE:
+            break;
+        case NUCLEO_TYPE_OPERATOR:
+            break;
+        case NUCLEO_TYPE_UNDEFINED:
             break;
         }
     }
@@ -544,9 +589,9 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
 
 void Transformer::nucleotideToStr(nucleotide_t *nucleotide) {
     info(
-            "\n=============================\n" "Type\t\t%s(%d)\n" "Subtype\t\t%s(%d)\nName\t\t%s\nValue\t\t%x\n" "=============================\n",
+            "\n=============================\n" "Type\t\t%s(%d)\n" "Subtype\t\t%s(%d)\nName\t\t%s\nValue\t\t---\n" "=============================\n",
 
             typeToStr(nucleotide->type), nucleotide->type,
             subtypeToStr(nucleotide->type, nucleotide->subtype), nucleotide->subtype.base,
-            nucleotide->name, nucleotide->subtype.raw);
+            nucleotide->name);
 }

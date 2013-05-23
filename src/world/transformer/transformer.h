@@ -41,7 +41,7 @@ public:
     const char *compareToStr(nucleotide_compare_e compare);
     const char *operatorToStr(nucleotide_operator_e oper);
 
-    nucleotide_type_e strToType(const char *type, uint32_t *subtype);
+    nucleotide_type_e strToType(const char *type, nucleotide_u *subtype);
     nucleotide_base_e strToBase(const char *base);
     nucleotide_control_e strToControl(const char *control);
     nucleotide_loop_e strToLoop(const char *loop);
