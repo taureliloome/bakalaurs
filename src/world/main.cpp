@@ -54,12 +54,12 @@ int main(int argv, char **argc) {
      Step 5 - work
      Make number of loops set up by user and give the results
      */
-    while(communicator->getClientCount() > -1 ){
+    do{
         bool ret = communicator->waitForConnection();
         if (!ret ){
             return 1;
         }
-    }
+    }while(communicator->getClientCount() > 0 );
     delete communicator;
     return 0;
 }

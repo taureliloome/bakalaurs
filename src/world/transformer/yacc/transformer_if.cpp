@@ -67,6 +67,7 @@ void TransformerIf::addToBuff(int debug, bool clearKeyBuff) {
         if (strlen(accBuff.name) > 0 || strlen(accBuff.val) > 0) {
             sendBuff[len] = accBuff;
             len++;
+            debug2("Added");
         }
     } else {
         error("Full buffer\n");

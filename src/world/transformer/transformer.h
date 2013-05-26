@@ -16,12 +16,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include <stack>
 #include <iostream>
 #include "messenger.h"
+#include "primal.h"
 #include "world_types.h"
 using namespace std;
 
 class Transformer: Messenger{
+    stack<nucleotide_t *> backtrace;
+    Primal *primal;
 public:
     Transformer();
     Transformer(msg_severity_t msg_lvl);

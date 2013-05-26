@@ -33,6 +33,10 @@ block_en	+
 fnc_srt		+
 fnc_end		+
 fnc_name	+
+fnc_parm	-
+args_str	+
+args_end	+
+arg			-
 
 =			+
 +=			+

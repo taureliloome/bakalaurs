@@ -57,6 +57,7 @@ YACC_C += $(ROOT)/helpers/messenger/messenger.cpp
 YACC_C += $(ROOT)/helpers/communication/communication.cpp
 YACC_C += $(ROOT)/world/transformer/transformer.cpp
 YACC_C += $(ROOT)/world/transformer/yacc/transformer_if.cpp
+YACC_C += $(ROOT)/world/primal.cpp
 
 #LEX
 LEX      = $(ROOT)/world/transformer/lex/main.l

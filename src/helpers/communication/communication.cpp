@@ -98,17 +98,22 @@ int Communicator::getFreeClientId() {
 }
 
 int Communicator::getConnectionFd(int id) {
-    if (id < connectionCount)
+    if (connections != NULL && id < connectionCount)
         return connections[id].fd;
     return -1;
 }
 
 connection_t *Communicator::getConnectionPtr(int id) {
-    debug2("connection ptr %p for id %d", &connections[id], id);
-    return &connections[id];
+    if (connections != NULL && id < connectionCount) {
+        debug2("connection ptr %p for id %d", &connections[id], id);
+        return &connections[id];
+    }
+    return NULL;
 }
 connection_t *Communicator::getServerConnPtr() {
-    return &connections[0];
+    if (connections != NULL)
+        return &connections[0];
+    return NULL;
 }
 
 /* Server Side */

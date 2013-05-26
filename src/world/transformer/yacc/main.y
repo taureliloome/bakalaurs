@@ -27,7 +27,8 @@ void yyerror(const char *str)
 }
 
 static Communicator *self = NULL;
-TransformerIf transformerIf(MSG_DEBUG2);
+TransformerIf transformerIf(MSG_DEBUG3);
+static uint8_t args_set = 0; 
 int main()
 {
     yyparse();
@@ -70,26 +71,26 @@ int main()
 %%
 		
 primary_expression
-	: IDENTIFIER 
-	| constant
-	| string { transformerIf.addParam("string","",yytext, 76); }
+	: IDENTIFIER { if ( args_set ) transformerIf.addParam("arg",yytext,yytext, __LINE__); }
+	| constant { if ( args_set ) transformerIf.addParam("arg",yytext,yytext, __LINE__); }   
+	| string { transformerIf.addParam("string","",yytext, __LINE__); }
 	| '(' expression ')'
 	| generic_selection
 	;
 
 constant
-	: I_CONSTANT { transformerIf.addParam("int",yytext,yytext,80); }  /* includes character_constant */
+	: I_CONSTANT 
 	| F_CONSTANT
 	| ENUMERATION_CONSTANT	/* after it has been defined as such */
 	;
 
 enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER { transformerIf.addKey("enum",21); }
+	: IDENTIFIER { transformerIf.addKey("enum",__LINE__); }
 	;
 
 string
 	: STRING_LITERAL 
-	| FUNC_NAME { transformerIf.addKey("fnc_name",22); }
+	| FUNC_NAME { transformerIf.addKey("fnc_name",__LINE__); }
 	;
 
 generic_selection
@@ -107,13 +108,17 @@ generic_association
 	;
 
 postfix_expression
-	: primary_expression 
+	: primary_expression
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' { transformerIf.addKey("fnc_srt",23); transformerIf.addToBuff(0); transformerIf.addKey("fnc_end",73); transformerIf.addToBuff(1); } ')' 
-	| postfix_expression '('
-		{ transformerIf.addKey("func_srt",24); transformerIf.addToBuff(2);}
-		argument_expression_list ')'
-	  	{ transformerIf.addKey("fnc_end",25); transformerIf.addToBuff(3); }
+	| postfix_expression '(' 
+		{ transformerIf.addParam("fnc_srt",yytext,"",__LINE__); 
+		  transformerIf.addParam("fnc_end",yytext,"",__LINE__); }
+		 ')' 
+	| postfix_expression '(' 
+		{ args_set = 1; transformerIf.addParam("args_str","",yytext,__LINE__); }		  
+		argument_expression_list
+		{ args_set = 0; transformerIf.addParam("args_end","",yytext,__LINE__); }
+		 ')'	  	
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER { transformerIf.addKey("ptr",26); }
 	| postfix_expression INC_OP	{ transformerIf.addKey("++",27); }
@@ -123,8 +128,8 @@ postfix_expression
 	;
 
 argument_expression_list
-	: assignment_expression
-	| argument_expression_list ',' assignment_expression
+	: assignment_expression 
+	| argument_expression_list ',' assignment_expression 
 	;
 
 unary_expression
@@ -138,12 +143,12 @@ unary_expression
 	;
 
 unary_operator
-	: '&' { transformerIf.addKey("&",29); }
-	| '*' { transformerIf.addKey("*",30); }
-	| '+' { transformerIf.addKey("+",31); }
-	| '-' { transformerIf.addKey("-",32); }
-	| '~' { transformerIf.addKey("~",33); }
-	| '!' { transformerIf.addKey("!",34); }
+	: '&' { transformerIf.addKey("&",__LINE__); }
+	| '*' { transformerIf.addKey("*",__LINE__); }
+	| '+' { transformerIf.addKey("+",__LINE__); }
+	| '-' { transformerIf.addKey("-",__LINE__); }
+	| '~' { transformerIf.addKey("~",__LINE__); }
+	| '!' { transformerIf.addKey("!",__LINE__); }
 	;
 
 cast_expression
@@ -172,8 +177,8 @@ shift_expression
 
 relational_expression
 	: shift_expression
-	| relational_expression '<' shift_expression { transformerIf.addKey("<",35); }
-	| relational_expression '>' shift_expression { transformerIf.addKey(">",36); }
+	| relational_expression '<' shift_expression { transformerIf.addKey("<",__LINE__); }
+	| relational_expression '>' shift_expression { transformerIf.addKey(">",__LINE__); }
 	| relational_expression LE_OP shift_expression
 	| relational_expression GE_OP shift_expression
 	;
@@ -220,17 +225,17 @@ assignment_expression
 	;
 
 assignment_operator
-	: '=' {transformerIf.addKey("=",74); } 
-	| MUL_ASSIGN {transformerIf.addKey("*=",37);}
-	| DIV_ASSIGN {transformerIf.addKey("/=",38);}
-	| MOD_ASSIGN {transformerIf.addKey("%=",39);}
-	| ADD_ASSIGN {transformerIf.addKey("+=",40);}
-	| SUB_ASSIGN {transformerIf.addKey("-=",41);}
-	| LEFT_ASSIGN {transformerIf.addKey("<<=",42);}
-	| RIGHT_ASSIGN {transformerIf.addKey(">>=",43);}
-	| AND_ASSIGN {transformerIf.addKey("&=",44);}
-	| XOR_ASSIGN {transformerIf.addKey("^=",45);}
-	| OR_ASSIGN {transformerIf.addKey("|=",46);}
+	: '=' {transformerIf.addKey("=",__LINE__); } 
+	| MUL_ASSIGN {transformerIf.addKey("*=",__LINE__);}
+	| DIV_ASSIGN {transformerIf.addKey("/=",__LINE__);}
+	| MOD_ASSIGN {transformerIf.addKey("%=",__LINE__);}
+	| ADD_ASSIGN {transformerIf.addKey("+=",__LINE__);}
+	| SUB_ASSIGN {transformerIf.addKey("-=",__LINE__);}
+	| LEFT_ASSIGN {transformerIf.addKey("<<=",__LINE__);}
+	| RIGHT_ASSIGN {transformerIf.addKey(">>=",__LINE__);}
+	| AND_ASSIGN {transformerIf.addKey("&=",__LINE__);}
+	| XOR_ASSIGN {transformerIf.addKey("^=",__LINE__);}
+	| OR_ASSIGN {transformerIf.addKey("|=",__LINE__);}
 	;
 
 expression
@@ -262,7 +267,7 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator { transformerIf.addToBuff(79, false); } 
+	: init_declarator { transformerIf.addToBuff(__LINE__, false); } 
 	| init_declarator_list ',' init_declarator
 	;
 
@@ -281,16 +286,16 @@ storage_class_specifier
 	;
 
 type_specifier
-	: VOID			{ transformerIf.addKey("void",47); }
-	| CHAR			{ transformerIf.addKey("char",48); }
-	| SHORT			{ transformerIf.addKey("short",49); }
-	| INT 			{ transformerIf.addKey("int",50); }
-	| LONG 			{ transformerIf.addKey("long",51); }
-	| FLOAT 		{ transformerIf.addKey("float",52); }
-	| DOUBLE 		{ transformerIf.addKey("double",53); }
-	| SIGNED 		{ transformerIf.addKey("signed",54); }
-	| UNSIGNED 		{ transformerIf.addKey("unsigned",55); }
-	| BOOL 			{ transformerIf.addKey("bool",56); }
+	: VOID			{ transformerIf.addKey("void",__LINE__); }
+	| CHAR			{ transformerIf.addKey("char",__LINE__); }
+	| SHORT			{ transformerIf.addKey("short",__LINE__); }
+	| INT 			{ transformerIf.addKey("int",__LINE__); }
+	| LONG 			{ transformerIf.addKey("long",__LINE__); }
+	| FLOAT 		{ transformerIf.addKey("float",__LINE__); }
+	| DOUBLE 		{ transformerIf.addKey("double",__LINE__); }
+	| SIGNED 		{ transformerIf.addKey("signed",__LINE__); }
+	| UNSIGNED 		{ transformerIf.addKey("unsigned",__LINE__); }
+	| BOOL 			{ transformerIf.addKey("bool",__LINE__); }
 	| COMPLEX
 	| IMAGINARY	  	/* non-mandated extension */
 	| atomic_type_specifier
@@ -384,7 +389,7 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER { transformerIf.addName(yytext,57); } 
+	: IDENTIFIER {transformerIf.addName(yytext,__LINE__); transformerIf.addToBuff(__LINE__,false); } 
 	| '(' declarator ')'
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'
@@ -395,7 +400,7 @@ direct_declarator
 	| direct_declarator '[' type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list ']'
 	| direct_declarator '[' assignment_expression ']'
-	| direct_declarator '(' parameter_type_list ')'
+	| direct_declarator '(' { transformerIf.addParam("fnc_parm","",yytext,__LINE__);} parameter_type_list ')'  
 	| direct_declarator '(' ')'
 	| direct_declarator '(' identifier_list ')'
 	;
@@ -472,7 +477,7 @@ direct_abstract_declarator
 initializer
 	: '{' initializer_list '}'
 	| '{' initializer_list ',' '}'
-	| { transformerIf.addVal(yytext,59); transformerIf.addToBuff(5, false); }  assignment_expression 
+	| { transformerIf.addVal(yytext,59); transformerIf.addToBuff(__LINE__, false); }  assignment_expression 
 	;
 
 initializer_list
@@ -516,8 +521,15 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' { transformerIf.addKey("block_st",60); transformerIf.addToBuff(6); transformerIf.addKey("block_en",61); transformerIf.addToBuff(7); } '}' 
-	| '{' { transformerIf.addKey("block_st",62); transformerIf.addToBuff(8); transformerIf.addName(yytext,62); } block_item_list { transformerIf.addKey("block_en",63); transformerIf.addToBuff(10); } '}'
+	: '{'
+		{ transformerIf.addParam("block_st","",yytext,__LINE__); 
+		  transformerIf.addParam("block_en","",yytext,__LINE__); } 
+	  '}' 
+	| '{' 
+		{ transformerIf.addParam("block_st","",yytext,__LINE__); }
+		  block_item_list 
+		{ transformerIf.addParam("block_en","",yytext,__LINE__); } 
+	  '}'
 	;
 
 block_item_list
@@ -559,7 +571,7 @@ jump_statement
 	;
 
 translation_unit
-	: external_declaration
+	: external_declaration 
 	| translation_unit external_declaration
 	;
 
@@ -569,7 +581,7 @@ external_declaration
 	;
 	
 function_definition
-	: declaration_specifiers declarator {transformerIf.addToBuff(4); }  declaration_list compound_statement 
+	: declaration_specifiers declarator { transformerIf.addToBuff(4); }  declaration_list compound_statement 
 	| declaration_specifiers declarator { transformerIf.addToBuff(75); } compound_statement 
 	;
 

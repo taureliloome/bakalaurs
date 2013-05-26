@@ -65,6 +65,10 @@ typedef enum {
     NUCLEO_SUPPORT_FUNC_SRT,
     NUCLEO_SUPPORT_FUNC_END,
     NUCLEO_SUPPORT_FUNC_NAME,
+    NUCLEO_SUPPORT_FUNC_PARAM,
+    NUCLEO_SUPPORT_ARGS_START,
+    NUCLEO_SUPPORT_ARGS_END,
+    NUCLEO_SUPPORT_ARGUMENT,
     NUCLEO_SUPPORT_UNDEFINED
 } nucleotide_support_e;
 
@@ -155,11 +159,13 @@ typedef struct nucleotide_s {
         nucleotide_base_s base;
         struct {
             struct nucleotide_s *statement; // Statement for this block to be active, NULL if not _IF or _ELIF
-            struct nucleotide_s *child;                             // First child block
+            struct nucleotide_s *child_fst;                             // First child block
+            struct nucleotide_s *child_lst;
         } control;
         struct {
             struct nucleotide_s *statement; // Statement for this block to be active, NULL if not _IF or _ELIF
-            struct nucleotide_s *child;                             // First child block
+            struct nucleotide_s *child_fst;                             // First child block
+            struct nucleotide_s *child_lst;                          // First child block
         } loop;
         struct {
             struct nucleotide_s *jump;

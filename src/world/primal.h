@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
+#include "messenger.h"
 #include "world_types.h"
 
 extern "C"{
@@ -23,17 +24,18 @@ extern "C"{
 }
 using namespace std;
 
-
-class Primal {
+class Primal : Messenger {
     static bool instanceFlag;
     static Primal *self;
     avl_tree_t *primal;
-    Primal();
+    Primal(msg_severity_t msg_lvl = MSG_INFO);
 public:
-    static Primal *getInstance();
+    static Primal *getInstance(msg_severity_t msg_lvl = MSG_INFO);
     ~Primal();
     int _compare(const void *left, const void *right);
     void _destroy(void *ptr);
+    void insert(nucleotide_t *insert);
+    bool initTree();
 };
 
 #endif /* _PRIMAL_H_ */
