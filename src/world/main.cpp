@@ -6,6 +6,7 @@
 #include "transformer.h"
 
 static Communicator *communicator = NULL;
+static Primal *primal = NULL;
 
 int main(int argv, char **argc) {
     /*
@@ -13,17 +14,16 @@ int main(int argv, char **argc) {
      +----------------------------+-------------------------+
      | Input parameters           | Requirement             |
      +----------------------------+-------------------------+
-     | first file read            | obligatory              |
-     | processes count            | obligatory              |
-     | average life span          | obligatory              |
-     | year loop count            | obligatory              |
-     | result folder              | optional                |
-     | log file                   | optional                |
-     | resources_1	              | NOT_IMPLEMENTED         |
+     | input data folder          | obligatory              |
+     | processes count            | obligatory [DISABLED]   |
+     | average life span          | obligatory [DISABLED]   |
+     | year loop count            | obligatory [DISABLED]   |
+     | result folder              | optional   [DISABLED]   |
+     | log file                   | optional   [DISABLED]   |
      +----------------------------+-------------------------+
      */
-    if (argv < 2) {
-        printf("incorrect usage not all arguments passed (%d < 2)\n", argv);
+    if (argv < 2 ) {
+        printf("incorrect usage: incorrect amount of arguments (%d < 2)\n", argv);
         return 1;
     }
 
@@ -34,18 +34,22 @@ int main(int argv, char **argc) {
      Setup primal database.
      */
     communicator = Communicator::getInstance(true,"WORLD");
-    communicator->CreateListenSocket(argc[1]);
+    primal = Primal::getInstance(MSG_DEBUG3);
     Transformer transformer(MSG_DEBUG3);
+
+    communicator->CreateListenSocket(argc[1]);
     communicator->setTransformer(&transformer);
 
+    primal->getInputFileList(argc[2]);
+
     /*
-     Step 3 - setup first generation
+     Step 3 - setup first generation [DISABLED]
      First generation will be the first organism objects compiled, after this they only have to be managed with
      communication trough watchdog. Organisms shall spawn their own children.
      */
 
     /*
-     Step 4 - sanity check
+     Step 4 - sanity check [DISABLED]
      Check that communication is initialized with all of the first generation organisms.
      Check database block count
      */

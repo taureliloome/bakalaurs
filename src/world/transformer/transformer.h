@@ -26,6 +26,7 @@ using namespace std;
 class Transformer: Messenger{
     stack<nucleotide_t *> backtrace;
     Primal *primal;
+    nucleotide_t *prev;
 public:
     Transformer();
     Transformer(msg_severity_t msg_lvl);

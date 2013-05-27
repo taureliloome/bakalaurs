@@ -18,6 +18,7 @@ extern "C"
 
 #define YYSTYPE char *
 extern char *yytext;
+extern FILE *yyin;
 #define YYDEBUG_LEXER_TEXT yytext
 int yydebug;
  
@@ -27,11 +28,10 @@ void yyerror(const char *str)
 }
 
 static Communicator *self = NULL;
-TransformerIf transformerIf(MSG_DEBUG3);
+TransformerIf transformerIf(MSG_DEBUG2);
 static uint8_t args_set = 0; 
 int main()
 {
-    yyparse();
     
     self = Communicator::getInstance(false,"YACC");
     
@@ -39,8 +39,21 @@ int main()
         delete self;
         return 0;
     }
-	
-    self->SendMessage(self->getServerConnPtr(), transformerIf.getBuffPtr(), transformerIf.getAndResetBuffLen(), 0);
+    size_t len = 0, i = 0;
+    transfer_t *reply = (transfer_t *)self->RecieveMessage(self->getServerConnPtr(), &len);
+    len /= sizeof(transfer_t);
+    while ( i < len ){
+    	FILE *input = fopen(reply[i].key, "r");
+    	i++;
+    	if (!input){
+    		continue;
+    	}
+    	yyin = input;
+		do {
+			yyparse();
+		} while (!feof(yyin));
+    	self->SendMessage(self->getServerConnPtr(), transformerIf.getBuffPtr(), transformerIf.getAndResetBuffLen(), 0);
+    }
     self->communicate();
     delete self;
     return 0;
@@ -111,11 +124,13 @@ postfix_expression
 	: primary_expression
 	| postfix_expression '[' expression ']'
 	| postfix_expression '(' 
-		{ transformerIf.addParam("fnc_srt",yytext,"",__LINE__); 
+		{ transformerIf.addToBuff(__LINE__); 
+		  transformerIf.addParam("fnc_srt",yytext,"",__LINE__); 
 		  transformerIf.addParam("fnc_end",yytext,"",__LINE__); }
 		 ')' 
 	| postfix_expression '(' 
-		{ args_set = 1; transformerIf.addParam("args_str","",yytext,__LINE__); }		  
+		{	transformerIf.addToBuff(__LINE__);
+			args_set = 1; transformerIf.addParam("args_str","",yytext,__LINE__); }		  
 		argument_expression_list
 		{ args_set = 0; transformerIf.addParam("args_end","",yytext,__LINE__); }
 		 ')'	  	
@@ -248,7 +263,7 @@ constant_expression
 	;
 
 declaration
-	: declaration_specifiers ';'
+	: declaration_specifiers ';' { transformerIf.clearBufs(); }
 	| declaration_specifiers init_declarator_list ';' { transformerIf.clearBufs(); }
 	| static_assert_declaration
 	;
@@ -289,7 +304,7 @@ type_specifier
 	: VOID			{ transformerIf.addKey("void",__LINE__); }
 	| CHAR			{ transformerIf.addKey("char",__LINE__); }
 	| SHORT			{ transformerIf.addKey("short",__LINE__); }
-	| INT 			{ transformerIf.addKey("int",__LINE__); }
+	| INT 			{ transformerIf.addKey("int",__LINE__);  }
 	| LONG 			{ transformerIf.addKey("long",__LINE__); }
 	| FLOAT 		{ transformerIf.addKey("float",__LINE__); }
 	| DOUBLE 		{ transformerIf.addKey("double",__LINE__); }
@@ -389,7 +404,7 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER {transformerIf.addName(yytext,__LINE__); transformerIf.addToBuff(__LINE__,false); } 
+	: IDENTIFIER {transformerIf.addName(yytext,__LINE__); } 
 	| '(' declarator ')'
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'
@@ -400,7 +415,7 @@ direct_declarator
 	| direct_declarator '[' type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list ']'
 	| direct_declarator '[' assignment_expression ']'
-	| direct_declarator '(' { transformerIf.addParam("fnc_parm","",yytext,__LINE__);} parameter_type_list ')'  
+	| direct_declarator '(' { transformerIf.addToBuff(__LINE__); transformerIf.addParam("fnc_parm","",yytext,__LINE__);} parameter_type_list ')'  
 	| direct_declarator '(' ')'
 	| direct_declarator '(' identifier_list ')'
 	;

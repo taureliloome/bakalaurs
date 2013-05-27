@@ -4,11 +4,13 @@ extern int strcmp(const char * str1, const char * str2);
 Transformer::Transformer() :
         Messenger(MSG_INFO) {
     primal = Primal::getInstance();
+    prev = NULL;
 }
 
 Transformer::Transformer(msg_severity_t msg_lvl) :
         Messenger(msg_lvl) {
     primal = Primal::getInstance(msg_lvl);
+    prev = NULL;
 }
 
 Transformer::~Transformer() {
@@ -29,6 +31,7 @@ int Transformer::transform(transfer_t *msg, size_t total) {
             }
             nucleotideToStr(nucleotide);
             primal->insert(nucleotide);
+            prev = nucleotide;
             rd++;
         }
         return 0;

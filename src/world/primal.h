@@ -15,9 +15,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <list>
 #include <iostream>
 #include "messenger.h"
 #include "world_types.h"
+#include <dirent.h>
 
 extern "C"{
 #include <avl.h>
@@ -28,14 +30,17 @@ class Primal : Messenger {
     static bool instanceFlag;
     static Primal *self;
     avl_tree_t *primal;
+    list<string> files;
     Primal(msg_severity_t msg_lvl = MSG_INFO);
 public:
     static Primal *getInstance(msg_severity_t msg_lvl = MSG_INFO);
     ~Primal();
+    bool initTree();
+    bool getInputFileList(const char *path);
+    transfer_t *fileListToMessage(size_t *size);
     int _compare(const void *left, const void *right);
     void _destroy(void *ptr);
     void insert(nucleotide_t *insert);
-    bool initTree();
 };
 
 #endif /* _PRIMAL_H_ */

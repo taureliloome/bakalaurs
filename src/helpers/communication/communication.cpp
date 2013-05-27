@@ -181,9 +181,11 @@ static void *clientHandler(void *idptr) {
 
     char message[] = "pong";
     void *reply;
+    size_t len = 0;
+    transfer_t *msg = Primal::getInstance()->fileListToMessage(&len);
+    self->SendMessage(conn, msg, len, 0x0);
 
     while (conn->used) {
-        size_t len = 0;
         reply = self->RecieveMessage(conn, &len);
         self->PassToTransformer((transfer_t *) reply, len);
         free(reply);

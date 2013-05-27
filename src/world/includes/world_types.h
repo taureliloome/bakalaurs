@@ -8,6 +8,12 @@
 #define NUCLEOTIDE_NAME_MAX_LEN MAX_NAME_LEN
 #define FILE_NAME_MAX_LEN 64
 
+typedef enum{
+    MSG_FILE_LIST = 0,
+    MSG_DATA,
+    MSG_END_OF_COMMUNICATION = 0xf
+}message_type_e;
+
 typedef enum {
     NUCLEO_TYPE_BASE = 0,
     NUCLEO_TYPE_CONTROL,

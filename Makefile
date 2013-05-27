@@ -119,7 +119,7 @@ world: $(WORLD_O) mkdir
 	$(CPP) $(CFLAGS) -o ./build/world.bin $(WORLD_O) $(LIBS)
 	
 run_world: world
-	./build/world.bin 1337 ./tasks/hello.c
+	./build/world.bin 1337 ./tasks
 	
 precompile:
 	$(CC) -E ./tasks/hello.c > ./tasks/hello.pre

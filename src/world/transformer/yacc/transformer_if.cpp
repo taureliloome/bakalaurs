@@ -63,11 +63,11 @@ void TransformerIf::addToBuff(int debug, bool clearKeyBuff) {
     if (strlen(accBuff.key) == 0) {
         info("nothing to add %d", debug);
     } else if (len < MSG_BUFFER_SIZE) {
-        debug2("Adding to buffer %s %s %s | %d", accBuff.key, accBuff.name, accBuff.val, debug);
+        debug3("Adding to buffer %s %s %s | %d", accBuff.key, accBuff.name, accBuff.val, debug);
         if (strlen(accBuff.name) > 0 || strlen(accBuff.val) > 0) {
             sendBuff[len] = accBuff;
             len++;
-            debug2("Added");
+            debug3("Added");
         }
     } else {
         error("Full buffer\n");
