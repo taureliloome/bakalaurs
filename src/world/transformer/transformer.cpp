@@ -115,7 +115,7 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
             case NUCLEO_JUMP_BREAK:
             case NUCLEO_JUMP_CONTINUE:
             case NUCLEO_JUMP_GOTO:
-                nucleotide->subvalues.jump.jump = NULL;
+                nucleotide->subvalues.jump.jump = NULL; // search for it!
                 break;
             }
             break;

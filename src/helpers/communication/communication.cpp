@@ -183,16 +183,15 @@ static void *clientHandler(void *idptr) {
     void *reply;
     size_t len = 0;
     transfer_t *msg = Primal::getInstance()->fileListToMessage(&len);
-    self->SendMessage(conn, msg, len, 0x0);
+    self->SendMessage(conn, msg, len, MSG_FILE_LIST);
 
     while (conn->used) {
         reply = self->RecieveMessage(conn, &len);
-        self->PassToTransformer((transfer_t *) reply, len);
         free(reply);
         if (conn->timeout >= 5) {
             memset(msgBuffer, 0, 512);
             sprintf(msgBuffer, "<HANDLER> Dropping session %d due to timeout", id);
-            self->SendMessage(conn, NULL, 0, 0xf);
+            self->SendMessage(conn, NULL, 0, MSG_END_OF_COMMUNICATION);
             self->_notice(msgBuffer);
             self->decrClientCount();
             conn->used = false;
@@ -265,13 +264,13 @@ bool Communicator::SendMessage(connection_t *conn, void * buf, size_t len, uint8
 void *Communicator::RecieveMessage(connection_t *conn, size_t *len) {
     int readfd = conn->fd;
 
-    debug2("Attempting to receive a message from fd:%d", readfd);
+    debug3("Attempting to receive a message from fd:%d", readfd);
 
     msg_header_t msg_hdr;
     uint64_t received = 0;
     struct timeval m_timeout;
-    m_timeout.tv_sec = 0;
-    m_timeout.tv_usec = 100;
+    m_timeout.tv_sec = 1;
+    m_timeout.tv_usec = 0;
 
     fd_set set;
     FD_ZERO(&set);
@@ -290,7 +289,7 @@ void *Communicator::RecieveMessage(connection_t *conn, size_t *len) {
     while (received != sizeof(msg_hdr)) {
         received += read(readfd, &msg_hdr + received, sizeof(msg_hdr) - received);
 
-        debug2("%lu/%lu", received, sizeof(msg_hdr));
+        debug3("%lu/%lu", received, sizeof(msg_hdr));
         /* TODO timeouts !
          if ( received != sizeof(msg_hdr) ){
          error("Unable to read the message");
@@ -304,27 +303,58 @@ void *Communicator::RecieveMessage(connection_t *conn, size_t *len) {
     debug2("Received message header type: %d, len: %lu fd:%d", msg_hdr.type, msg_hdr.length,
             readfd);
 
-    if (msg_hdr.type == 0xf) {
+    void * buf = NULL;
+    switch (msg_hdr.type) {
+    case MSG_END_OF_COMMUNICATION:
+        debug("END OF COMMUNICATION received, closing connection");
         decrClientCount();
         return NULL;
+        break;
+    case MSG_HEART_BEAT:
+        debug3("Heart beat message received");
+        conn->timeout = 0;
+        return NULL;
+    case MSG_FILE_LIST:
+        debug3("incoming file list received");
+        received = 0;
+        buf = malloc(msg_hdr.length + 1);
+        while (received != msg_hdr.length) {
+            received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
+            debug3("%lu/%lu", received, msg_hdr.length);
+        }
+        /* TODO timeouts !
+         if ( received != msg_hdr.length ){
+         error("Unable to read the message");
+         free(buf);
+         return NULL;
+         } */
+        if (len)
+            *len = msg_hdr.length;
+        return buf;
+        break;
+    case MSG_DATA:
+        debug3("incoming data received");
+        received = 0;
+        buf = malloc(msg_hdr.length + 1);
+        while (received != msg_hdr.length) {
+            received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
+            debug3("%lu/%lu", received, msg_hdr.length);
+        }
+        /* TODO timeouts !
+         if ( received != msg_hdr.length ){
+         error("Unable to read the message");
+         free(buf);
+         return NULL;
+         } */
+        PassToTransformer((transfer_t *)buf, msg_hdr.length);
+        return buf;
+        break;
+    default:
+        error("UNKNOWN message received");
+        return NULL;
+        break;
     }
-
-    received = 0;
-    void * buf = malloc(msg_hdr.length + 1);
-    while (received != msg_hdr.length) {
-        received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
-        debug2("%lu/%lu", received, msg_hdr.length);
-    }
-    ((char *) buf)[msg_hdr.length] = '\0';
-    /* TODO timeouts !
-     if ( received != msg_hdr.length ){
-     error("Unable to read the message");
-     free(buf);
-     return NULL;
-     } */
-    if (len)
-        *len = msg_hdr.length;
-    return buf;
+    return NULL;
 }
 
 void Communicator::communicate() {

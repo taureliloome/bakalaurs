@@ -43,6 +43,7 @@ int main()
     transfer_t *reply = (transfer_t *)self->RecieveMessage(self->getServerConnPtr(), &len);
     len /= sizeof(transfer_t);
     while ( i < len ){
+    	self->SendMessage(self->getServerConnPtr(), NULL, 0, MSG_HEART_BEAT);
     	FILE *input = fopen(reply[i].key, "r");
     	i++;
     	if (!input){
@@ -52,7 +53,7 @@ int main()
 		do {
 			yyparse();
 		} while (!feof(yyin));
-    	self->SendMessage(self->getServerConnPtr(), transformerIf.getBuffPtr(), transformerIf.getAndResetBuffLen(), 0);
+    	self->SendMessage(self->getServerConnPtr(), transformerIf.getBuffPtr(), transformerIf.getAndResetBuffLen(), MSG_DATA);
     }
     self->communicate();
     delete self;
