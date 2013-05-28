@@ -64,6 +64,7 @@ int main(int argv, char **argc) {
             return 1;
         }
     }while(communicator->getClientCount() > 0 );
+    delete primal;
     delete communicator;
     return 0;
 }

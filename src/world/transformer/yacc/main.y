@@ -28,11 +28,10 @@ void yyerror(const char *str)
 }
 
 static Communicator *self = NULL;
-TransformerIf transformerIf(MSG_DEBUG2);
+TransformerIf transformerIf(MSG_DEBUG3);
 static uint8_t args_set = 0; 
 int main()
 {
-    
     self = Communicator::getInstance(false,"YACC");
     
     if ( !self->ConnectToServer("127.0.0.1","1337") ){
@@ -45,16 +44,19 @@ int main()
     while ( i < len ){
     	self->SendMessage(self->getServerConnPtr(), NULL, 0, MSG_HEART_BEAT);
     	FILE *input = fopen(reply[i].key, "r");
-    	i++;
     	if (!input){
     		continue;
     	}
     	yyin = input;
+    	transformerIf.addParam("file_str", reply[i].key, "", __LINE__);
 		do {
 			yyparse();
 		} while (!feof(yyin));
+		transformerIf.addParam("file_end", reply[i].key, "", __LINE__);
     	self->SendMessage(self->getServerConnPtr(), transformerIf.getBuffPtr(), transformerIf.getAndResetBuffLen(), MSG_DATA);
+    	i++;
     }
+    free(reply);
     self->communicate();
     delete self;
     return 0;

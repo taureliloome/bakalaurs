@@ -84,10 +84,6 @@ void TransformerIf::clearBufs() {
     memset(&accBuff, 0, sizeof(accBuff));
 }
 
-void TransformerIf::itarate() {
-
-}
-
 transfer_t *TransformerIf::getBuffPtr() {
     return sendBuff;
 }

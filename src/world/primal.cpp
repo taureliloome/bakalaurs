@@ -47,7 +47,7 @@ bool Primal::getInputFileList(const char *path) {
     if ((dir = opendir(path)) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
             input.erase();
-            if ( strcmp(ent->d_name,".") && strcmp(ent->d_name,"..")  ){
+            if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..")) {
                 input += path;
                 input += '/';
                 input += ent->d_name;
@@ -63,13 +63,13 @@ bool Primal::getInputFileList(const char *path) {
     return true;
 }
 
-transfer_t *Primal::fileListToMessage(size_t *size){
+transfer_t *Primal::fileListToMessage(size_t *size) {
     *size = sizeof(transfer_t) * files.size();
     transfer_t *message = (transfer_t *) malloc(*size);
     int i = 0;
-    for (list<string>::iterator it=files.begin(); it!=files.end(); ++it){
+    for (list<string>::iterator it = files.begin(); it != files.end(); ++it) {
         strcpy(message[i].key, it->c_str());
-        debug3("%s",message[i].key);
+        debug3("%s", message[i].key);
         i++;
     }
     return message;
@@ -77,6 +77,23 @@ transfer_t *Primal::fileListToMessage(size_t *size){
 
 void Primal::insert(nucleotide_t *insert) {
     avl_insert(primal, insert);
+}
+
+void Primal::update(nucleotide_t *search, nucleotide_type_e type, uint32_t subtype) {
+    avl_node_t *node = avl_search(primal, search);
+    if (node) {
+        nucleotide_t *update = (nucleotide_t *) node->item;
+        update->type = type;
+        update->subtype.raw = subtype;
+    }
+}
+
+void Primal::iterate(const avl_node_t *parent, avl_iterate_cb_t *iterate_cb) {
+    if (parent->left)
+        iterate(parent->left, iterate_cb);
+    iterate_cb((nucleotide_t *) parent->item);
+    if (parent->right)
+        iterate(parent->right, iterate_cb);
 }
 
 void Primal::_destroy(void *ptr) {

@@ -44,9 +44,9 @@ private:
     connection_t *connections;
     msg_header_t local_msg_hdr;
     static Communicator *self;
-    Transformer *transformer;
     Communicator(bool setServer, const char *setName);
 public:
+    Transformer *transformer;
     void PassToTransformer(transfer_t *reply, size_t len);
     static Communicator *getInstance(bool setServer, const char *setName);
     static Communicator *getInstance();

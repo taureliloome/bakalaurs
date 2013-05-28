@@ -76,6 +76,8 @@ typedef enum {
     NUCLEO_SUPPORT_ARGS_START,
     NUCLEO_SUPPORT_ARGS_END,
     NUCLEO_SUPPORT_ARGUMENT,
+    NUCLEO_SUPPORT_FILE_START,
+    NUCLEO_SUPPORT_FILE_END,
     NUCLEO_SUPPORT_UNDEFINED
 } nucleotide_support_e;
 
@@ -121,9 +123,9 @@ typedef enum {
 } nucleotide_operator_e;
 
 typedef struct transfer_s {
-    char key[MAX_KEY_LEN];
-    char name[MAX_NAME_LEN];
-    char val[MAX_VAL_LEN];
+    char key[MAX_KEY_LEN+1];
+    char name[MAX_NAME_LEN+1];
+    char val[MAX_VAL_LEN+1];
 } transfer_t;
 
 typedef union {
@@ -165,7 +167,8 @@ typedef struct nucleotide_s {
     union {
         nucleotide_base_s base;
         struct {
-            struct nucleotide_s *statement; // Statement for this block to be active, NULL if not _IF or _ELIF
+            struct nucleotide_s *param_fst; // Statement for this block to be active, NULL if not _IF or _ELIF
+            struct nucleotide_s *param_lst; // Statement for this block to be active, NULL if not _IF or _ELIF
             struct nucleotide_s *child_fst;                             // First child block
             struct nucleotide_s *child_lst;
         } control;

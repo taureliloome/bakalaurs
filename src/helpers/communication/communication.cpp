@@ -179,7 +179,6 @@ static void *clientHandler(void *idptr) {
     sprintf(msgBuffer, "New thread started id: %d, fd: %d;", id, conn->fd);
     self->_debug(msgBuffer);
 
-    char message[] = "pong";
     void *reply;
     size_t len = 0;
     transfer_t *msg = Primal::getInstance()->fileListToMessage(&len);
@@ -198,6 +197,7 @@ static void *clientHandler(void *idptr) {
             break;
         }
     }
+    self->transformer->printFiles(true);
     memset(msgBuffer, 0, 512);
     sprintf(msgBuffer, "<HANDLER> Connection %d session ended", 0);
     self->_debug(msgBuffer);
@@ -286,7 +286,7 @@ void *Communicator::RecieveMessage(connection_t *conn, size_t *len) {
         return NULL;
     }
     conn->timeout = 0;
-    while (received != sizeof(msg_hdr)) {
+    while (received < sizeof(msg_hdr)) {
         received += read(readfd, &msg_hdr + received, sizeof(msg_hdr) - received);
 
         debug3("%lu/%lu", received, sizeof(msg_hdr));
@@ -318,7 +318,7 @@ void *Communicator::RecieveMessage(connection_t *conn, size_t *len) {
         debug3("incoming file list received");
         received = 0;
         buf = malloc(msg_hdr.length + 1);
-        while (received != msg_hdr.length) {
+        while (received < msg_hdr.length) {
             received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
             debug3("%lu/%lu", received, msg_hdr.length);
         }
@@ -336,7 +336,7 @@ void *Communicator::RecieveMessage(connection_t *conn, size_t *len) {
         debug3("incoming data received");
         received = 0;
         buf = malloc(msg_hdr.length + 1);
-        while (received != msg_hdr.length) {
+        while (received < msg_hdr.length) {
             received += read(readfd, (void *) ((uint64_t) buf + received), msg_hdr.length - received);
             debug3("%lu/%lu", received, msg_hdr.length);
         }

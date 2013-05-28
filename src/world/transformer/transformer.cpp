@@ -5,12 +5,18 @@ Transformer::Transformer() :
         Messenger(MSG_INFO) {
     primal = Primal::getInstance();
     prev = NULL;
+    isParam = false;
+    nodeIds = 0;
+    memset(&root, 0, sizeof(root));
 }
 
 Transformer::Transformer(msg_severity_t msg_lvl) :
         Messenger(msg_lvl) {
     primal = Primal::getInstance(msg_lvl);
     prev = NULL;
+    isParam = false;
+    nodeIds = 0;
+    memset(&root, 0, sizeof(root));
 }
 
 Transformer::~Transformer() {
@@ -22,16 +28,16 @@ int Transformer::transform(transfer_t *msg, size_t total) {
         nucleotide_t *nucleotide = NULL;
         total /= sizeof(transfer_t);
         while (rd < total) {
-            debug3("%s | %s | %s", msg[rd].key, msg[rd].name, msg[rd].val);
+            debug("%s | %s | %s", msg[rd].key, msg[rd].name, msg[rd].val);
 
             nucleotide = createNucleotide(msg[rd].key, msg[rd].name, msg[rd].val);
-            if (!nucleotide) {
-                error("no nucleotide allocated");
-                return 1;
+            if (nucleotide) {
+                debug("Adding %s %s to database", typeToStr(nucleotide->type),
+                        subtypeToStr(nucleotide->type, nucleotide->subtype));
+                primal->insert(nucleotide);
+                //nucleotideToStr(nucleotide);
+                prev = nucleotide;
             }
-            nucleotideToStr(nucleotide);
-            primal->insert(nucleotide);
-            prev = nucleotide;
             rd++;
         }
         return 0;
@@ -43,6 +49,8 @@ int Transformer::transform(transfer_t *msg, size_t total) {
 
 nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, const char *val) {
     nucleotide_t *nucleotide = (nucleotide_t *) malloc(sizeof(nucleotide_t));
+    nucleotide->id = nodeIds++;
+    nucleotide_t *top = backtrace.size() ? backtrace.top() : NULL;
     if (nucleotide == NULL)
         return NULL;
     memset(nucleotide, 0, sizeof(nucleotide_t));
@@ -90,12 +98,33 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
                 nucleotide->subvalues.base.isSet = false;
 
             }
+            if (top) {
+                if (isParam) {
+                    if (!top->subvalues.control.param_fst) {
+                        top->subvalues.control.param_fst = nucleotide;
+                        top->subvalues.control.param_lst = nucleotide;
+                    } else {
+                        top->subvalues.control.param_lst->sibling = nucleotide;
+                        top->subvalues.control.param_lst = nucleotide;
+                    }
+                    nucleotide->parent = top;
+                } else {
+                    if (!top->subvalues.control.child_fst) {
+                        top->subvalues.control.child_fst = nucleotide;
+                        top->subvalues.control.child_lst = nucleotide;
+                    } else {
+                        top->subvalues.control.child_lst->sibling = nucleotide;
+                        top->subvalues.control.child_lst = nucleotide;
+                    }
+                }
+            }
+            nucleotide->sibling = NULL;
             break;
         case NUCLEO_TYPE_CONTROL:
             switch (nucleotide->subtype.control) {
             case NUCLEO_CONTROL_FUNCTION:
                 nucleotide->subvalues.control.child_fst = NULL;
-                nucleotide->subvalues.control.statement = NULL;
+                nucleotide->subvalues.control.child_lst = NULL;
                 break;
             }
             break;
@@ -121,16 +150,52 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
             break;
         case NUCLEO_TYPE_SUPPORT:
             switch (nucleotide->subtype.support) {
+            case NUCLEO_SUPPORT_FUNC_PARAM:
+                isParam = true;
+                if (prev && top != prev) {
+                    debug("Update %s %s to %s %s to database", typeToStr(prev->type),
+                            subtypeToStr(prev->type, prev->subtype), typeToStr(NUCLEO_TYPE_CONTROL),
+                            controlToStr(NUCLEO_CONTROL_FUNCTION));
+                    primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
+                    debug3("push to stack %p", nucleotide);
+                    backtrace.push(prev);
+                    free(nucleotide);
+                    nucleotide = NULL;
+                }
+                break;
             case NUCLEO_SUPPORT_BLOCK_START:
-                debug3("push to stack %p", nucleotide);
-                backtrace.push(nucleotide);
+                isParam = false;
+                if (prev && top != prev) {
+                    debug("Update %s %s to %s %s to database", typeToStr(prev->type),
+                            subtypeToStr(prev->type, prev->subtype), typeToStr(NUCLEO_TYPE_CONTROL),
+                            controlToStr(NUCLEO_CONTROL_FUNCTION));
+                    primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
+                    debug3("push to stack %p", nucleotide);
+                    backtrace.push(prev);
+                    free(nucleotide);
+                    nucleotide = NULL;
+                }
                 break;
             case NUCLEO_SUPPORT_BLOCK_END:
                 debug3("pop from stack %p", backtrace.top());
-                if ( backtrace.size() )
+                if (backtrace.size())
                     backtrace.pop();
                 else
                     error("Nothing to pop from stack");
+                break;
+            case NUCLEO_SUPPORT_FILE_START:
+                info("file %s added to stack ", nucleotide->name);
+                if (!root.subvalues.control.child_fst) {
+                    root.subvalues.control.child_fst = nucleotide;
+                } else {
+                    root.subvalues.control.child_lst->sibling = nucleotide;
+                }
+                root.subvalues.control.child_lst = nucleotide;
+                backtrace.push(nucleotide);
+                break;
+            case NUCLEO_SUPPORT_FILE_END:
+                info("file %s removed from stack ", top->name);
+                backtrace.pop();
                 break;
             }
             break;
@@ -328,6 +393,12 @@ const char *Transformer::supportToStr(nucleotide_support_e support) {
         break;
     case NUCLEO_SUPPORT_ARGUMENT:
         return "ARGUMENT";
+        break;
+    case NUCLEO_SUPPORT_FILE_START:
+        return "FILE START";
+        break;
+    case NUCLEO_SUPPORT_FILE_END:
+        return "FILE END";
         break;
     }
     return "UNDEFINED";
@@ -558,6 +629,10 @@ nucleotide_support_e Transformer::strToSupport(const char *support) {
         return NUCLEO_SUPPORT_ARGS_END;
     else if (!strcmp(support, "arg"))
         return NUCLEO_SUPPORT_ARGUMENT;
+    else if (!strcmp(support, "file_str"))
+        return NUCLEO_SUPPORT_FILE_START;
+    else if (!strcmp(support, "file_end"))
+        return NUCLEO_SUPPORT_FILE_END;
     return NUCLEO_SUPPORT_UNDEFINED;
 }
 
@@ -631,10 +706,29 @@ nucleotide_operator_e Transformer::strToOperator(const char *oper) {
     return NUCLEO_OPERATOR_UNDEFINED;
 }
 
+void Transformer::printFiles(bool print) {
+    nucleotide_t *it = root.subvalues.control.child_fst;
+    while (it) {
+        nucleotideToStr(it);
+        if (print){
+            info("Name\t\tType\t\tSubtype\t\t\t\t");
+            printChildren(it, 1);
+        }
+        it = it->sibling;
+    }
+}
+
+void Transformer::printChildren(nucleotide_t *parent, size_t depth) {
+    depth++;
+    nucleotide_t *it = parent->subvalues.control.child_fst;
+    while (it) {
+        nucleotideToStr(it);
+        printChildren(it, depth);
+        it = it->sibling;
+    }
+}
+
 void Transformer::nucleotideToStr(nucleotide_t *nucleotide) {
-    info(
-            "\nType\t\t%s(%d)\nSubtype\t\t%s(%d)\nName\t\t%s\nValue\t\t---\n=============================\n",
-            typeToStr(nucleotide->type), nucleotide->type,
-            subtypeToStr(nucleotide->type, nucleotide->subtype), nucleotide->subtype.base,
-            nucleotide->name);
+    info("%s\t\t%s\t\t%s\t\t\t\t", nucleotide->name, typeToStr(nucleotide->type),
+            subtypeToStr(nucleotide->type, nucleotide->subtype));
 }

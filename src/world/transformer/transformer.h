@@ -24,16 +24,22 @@
 using namespace std;
 
 class Transformer: Messenger{
+    uint32_t nodeIds;
     stack<nucleotide_t *> backtrace;
     Primal *primal;
     nucleotide_t *prev;
+    nucleotide_t root;
+    bool isParam;
 public:
     Transformer();
     Transformer(msg_severity_t msg_lvl);
     ~Transformer();
     int transform(transfer_t *msg, size_t len);
+    nucleotide_t *createNucleotide(const char *type, const char *name, const char *val);
 
     void nucleotideToStr(nucleotide_t *nucleotide);
+    void printFiles(bool print);
+    void printChildren(nucleotide_t *parent, size_t depth);
 
     const char *subtypeToStr(nucleotide_type_e type, nucleotide_u subtype );
     const char *typeToStr(nucleotide_type_e type);
@@ -56,7 +62,6 @@ public:
     nucleotide_compare_e strToCompare(const char *compare);
     nucleotide_operator_e strToOperator(const char *oper);
 
-    nucleotide_t *createNucleotide(const char *type, const char *name, const char *val);
 };
 
 #endif /* _TRANSFORMER_H_ */

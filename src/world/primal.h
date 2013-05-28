@@ -21,12 +21,14 @@
 #include "world_types.h"
 #include <dirent.h>
 
-extern "C"{
+extern "C" {
 #include <avl.h>
 }
 using namespace std;
 
-class Primal : Messenger {
+typedef void (avl_iterate_cb_t)(nucleotide_t *ret);
+
+class Primal: Messenger {
     static bool instanceFlag;
     static Primal *self;
     avl_tree_t *primal;
@@ -40,7 +42,11 @@ public:
     transfer_t *fileListToMessage(size_t *size);
     int _compare(const void *left, const void *right);
     void _destroy(void *ptr);
+
+    void iterate(const avl_node_t *parent, avl_iterate_cb_t *iterate_cb);
+
     void insert(nucleotide_t *insert);
+    void update(nucleotide_t *search, nucleotide_type_e type, uint32_t subtype);
 };
 
 #endif /* _PRIMAL_H_ */
