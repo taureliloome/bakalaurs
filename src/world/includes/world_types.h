@@ -159,11 +159,15 @@ typedef struct nucleotide_base_s{
     bool isSet;
 }nucleotide_base_t;
 
+/*Upon update change documents 1. addition as well*/
 typedef struct nucleotide_s {
     char file[FILE_NAME_MAX_LEN];                   // Name of the source code file
     char name[NUCLEOTIDE_NAME_MAX_LEN];             // Variable name.
     nucleotide_type_e type;                         // Type of nucleotide see @ref nucleotide_type_e
     nucleotide_u subtype;
+
+    nucleotide_s *parent;                           // Parent block, NULL if it's main();
+    nucleotide_s *sibling;         // Sibling blocks to current, sorted and ordered, NULL if main();
     union {
         nucleotide_base_s base;
         struct {
@@ -181,13 +185,9 @@ typedef struct nucleotide_s {
             struct nucleotide_s *jump;
         } jump;
     } subvalues;
-    uint64_t id;     // Id of current child, these are used to compare, balance and find nucleotides
-
-    nucleotide_s *parent;                           // Parent block, NULL if it's main();
-    nucleotide_s *sibling;         // Sibling blocks to current, sorted and ordered, NULL if main();
 
     size_t len;
-    char *val;
+    char *nucleobase;
 } nucleotide_t;
 
 #endif /* __WORLD_TYPES_H__ */
