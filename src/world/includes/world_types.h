@@ -5,6 +5,7 @@
 #define MAX_KEY_LEN  8
 #define MAX_NAME_LEN 64
 #define MAX_VAL_LEN 64
+#define MAX_NUCLEOBASE_COUNT ((uint64_t)1 << 56)
 #define NUCLEOTIDE_NAME_MAX_LEN MAX_NAME_LEN
 #define FILE_NAME_MAX_LEN 64
 
@@ -28,7 +29,6 @@ typedef enum {
 } nucleotide_type_e;
 
 typedef enum {
-    /* defined types */
     NUCLEO_BASE_VOID = 0,
     NUCLEO_BASE_CHAR,
     NUCLEO_BASE_SHORT,
@@ -129,6 +129,10 @@ typedef struct transfer_s {
 } transfer_t;
 
 typedef union {
+    uint64_t raw;
+}nucleobase_u;
+
+typedef union {
     nucleotide_type_e type;
     nucleotide_base_e base;
     nucleotide_control_e control;
@@ -138,7 +142,7 @@ typedef union {
     nucleotide_assigns_e assigns;
     nucleotide_compare_e compare;
     nucleotide_operator_e oper;
-    uint32_t raw;
+    uint8_t raw;
 } nucleotide_u;
 
 typedef union {
@@ -163,8 +167,6 @@ typedef struct nucleotide_base_s{
 typedef struct nucleotide_s {
     char file[FILE_NAME_MAX_LEN];                   // Name of the source code file
     char name[NUCLEOTIDE_NAME_MAX_LEN];             // Variable name.
-    nucleotide_type_e type;                         // Type of nucleotide see @ref nucleotide_type_e
-    nucleotide_u subtype;
 
     nucleotide_s *parent;                           // Parent block, NULL if it's main();
     nucleotide_s *sibling;         // Sibling blocks to current, sorted and ordered, NULL if main();
@@ -186,8 +188,8 @@ typedef struct nucleotide_s {
         } jump;
     } subvalues;
 
-    size_t len;
-    char *nucleobase;
+    uint64_t nucleobase_count;
+    nucleobase_u *nucleobase;
 } nucleotide_t;
 
 #endif /* __WORLD_TYPES_H__ */

@@ -34,7 +34,7 @@ int main(int argv, char **argc) {
      Setup primal database.
      */
     communicator = Communicator::getInstance(true,"WORLD");
-    primal = Primal::getInstance(MSG_DEBUG3);
+    primal = Primal::getInstance(MSG_DEBUG2);
     Transformer transformer(MSG_DEBUG3);
 
     communicator->CreateListenSocket(argc[1]);

@@ -41,8 +41,8 @@ public:
     void printFiles(bool print);
     void printChildren(nucleotide_t *parent, size_t depth);
 
-    const char *subtypeToStr(nucleotide_type_e type, nucleotide_u subtype );
-    const char *typeToStr(nucleotide_type_e type);
+    const char *subtypeToStr(nucleobase_u data);
+    const char *typeToStr(nucleobase_u type);
     const char *baseToStr(nucleotide_base_e base);
     const char *controlToStr(nucleotide_control_e control);
     const char *loopToStr(nucleotide_loop_e loop);
@@ -61,6 +61,10 @@ public:
     nucleotide_assigns_e strToAssigns(const char *assigns);
     nucleotide_compare_e strToCompare(const char *compare);
     nucleotide_operator_e strToOperator(const char *oper);
+
+    bool createNucleobase(nucleotide_t *nucleo, nucleotide_type_e type, nucleotide_u subtype);
+    bool attachNucleobase(nucleotide_t *parent, nucleotide_t *child);
+    void printNucleobase(nucleotide_t *nucleo);
 
 };
 

@@ -14,7 +14,7 @@
 #define _PRIMAL_H_
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <list>
 #include <iostream>
 #include "messenger.h"
@@ -40,13 +40,14 @@ public:
     bool initTree();
     bool getInputFileList(const char *path);
     transfer_t *fileListToMessage(size_t *size);
-    int _compare(const void *left, const void *right);
+    int _compare(const nucleotide_t *left, const nucleotide_t *right);
     void _destroy(void *ptr);
 
     void iterate(const avl_node_t *parent, avl_iterate_cb_t *iterate_cb);
 
     void insert(nucleotide_t *insert);
     void update(nucleotide_t *search, nucleotide_type_e type, uint32_t subtype);
+    nucleotide_t *search(nucleotide_t* nucleotide);
 };
 
 #endif /* _PRIMAL_H_ */

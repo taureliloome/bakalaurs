@@ -8,6 +8,7 @@ Transformer::Transformer() :
     isParam = false;
     nodeIds = 0;
     memset(&root, 0, sizeof(root));
+    strcpy(root.name, "ROOT");
 }
 
 Transformer::Transformer(msg_severity_t msg_lvl) :
@@ -32,11 +33,16 @@ int Transformer::transform(transfer_t *msg, size_t total) {
 
             nucleotide = createNucleotide(msg[rd].key, msg[rd].name, msg[rd].val);
             if (nucleotide) {
-                debug("Adding %s %s to database", typeToStr(nucleotide->type),
-                        subtypeToStr(nucleotide->type, nucleotide->subtype));
-                primal->insert(nucleotide);
-                //nucleotideToStr(nucleotide);
-                prev = nucleotide;
+                //if (!primal->search(nucleotide)) {
+                    debug("Adding %s %s to database", typeToStr(nucleotide->nucleobase[0]),
+                            subtypeToStr(nucleotide->nucleobase[0]));
+                    primal->insert(nucleotide);
+                    //nucleotideToStr(nucleotide);
+                    prev = nucleotide;
+                //} else {
+                //    debug("Node already exists, removing recently allocated one");
+                //    free(nucleotide);
+                //}
             }
             rd++;
         }
@@ -49,22 +55,23 @@ int Transformer::transform(transfer_t *msg, size_t total) {
 
 nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, const char *val) {
     nucleotide_t *nucleotide = (nucleotide_t *) malloc(sizeof(nucleotide_t));
-    nucleotide->id = nodeIds++;
     nucleotide_t *top = backtrace.size() ? backtrace.top() : NULL;
     if (nucleotide == NULL)
         return NULL;
     memset(nucleotide, 0, sizeof(nucleotide_t));
-    nucleotide_u subtype;
-    nucleotide->type = strToType(type, &subtype);
+    nucleotide_u _subtype;
+    _subtype.raw = 0;
+    nucleotide_type_e _type = strToType(type, &_subtype);
     //debug3("type:%u %u",nucleotide->type, subtype.raw);
     strcpy(nucleotide->name, name);
-    nucleotide->subtype.raw = subtype.raw;
+
+    nucleotide->sibling = NULL;
 
     if (val) {
-        switch (nucleotide->type) {
+        switch (_type) {
         case NUCLEO_TYPE_BASE:
             nucleotide->subvalues.base.isSet = true;
-            switch (nucleotide->subtype.base) {
+            switch (_subtype.base) {
             case NUCLEO_BASE_STRING:
                 strcpy(nucleotide->subvalues.base.val.str, val);
                 break;
@@ -98,48 +105,23 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
                 nucleotide->subvalues.base.isSet = false;
 
             }
-            if (top) {
-                if (isParam) {
-                    if (!top->subvalues.control.param_fst) {
-                        top->subvalues.control.param_fst = nucleotide;
-                        top->subvalues.control.param_lst = nucleotide;
-                    } else {
-                        top->subvalues.control.param_lst->sibling = nucleotide;
-                        top->subvalues.control.param_lst = nucleotide;
-                    }
-                    nucleotide->parent = top;
-                } else {
-                    if (!top->subvalues.control.child_fst) {
-                        top->subvalues.control.child_fst = nucleotide;
-                        top->subvalues.control.child_lst = nucleotide;
-                    } else {
-                        top->subvalues.control.child_lst->sibling = nucleotide;
-                        top->subvalues.control.child_lst = nucleotide;
-                    }
-                }
-            }
-            nucleotide->sibling = NULL;
             break;
         case NUCLEO_TYPE_CONTROL:
-            switch (nucleotide->subtype.control) {
+            switch (_subtype.control) {
             case NUCLEO_CONTROL_FUNCTION:
-                nucleotide->subvalues.control.child_fst = NULL;
-                nucleotide->subvalues.control.child_lst = NULL;
                 break;
             }
             break;
         case NUCLEO_TYPE_LOOP:
-            switch (nucleotide->subtype.loop) {
+            switch (_subtype.loop) {
             case NUCLEO_LOOP_DO:
             case NUCLEO_LOOP_WHILE:
             case NUCLEO_LOOP_FOR:
-                nucleotide->subvalues.loop.child_fst = NULL;
-                nucleotide->subvalues.loop.statement = NULL;
                 break;
             }
             break;
         case NUCLEO_TYPE_JUMP:
-            switch (nucleotide->subtype.jump) {
+            switch (_subtype.jump) {
             case NUCLEO_JUMP_RETURN:
             case NUCLEO_JUMP_BREAK:
             case NUCLEO_JUMP_CONTINUE:
@@ -149,13 +131,10 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
             }
             break;
         case NUCLEO_TYPE_SUPPORT:
-            switch (nucleotide->subtype.support) {
+            switch (_subtype.support) {
             case NUCLEO_SUPPORT_FUNC_PARAM:
                 isParam = true;
                 if (prev && top != prev) {
-                    debug("Update %s %s to %s %s to database", typeToStr(prev->type),
-                            subtypeToStr(prev->type, prev->subtype), typeToStr(NUCLEO_TYPE_CONTROL),
-                            controlToStr(NUCLEO_CONTROL_FUNCTION));
                     primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
                     debug3("push to stack %p", nucleotide);
                     backtrace.push(prev);
@@ -166,9 +145,6 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
             case NUCLEO_SUPPORT_BLOCK_START:
                 isParam = false;
                 if (prev && top != prev) {
-                    debug("Update %s %s to %s %s to database", typeToStr(prev->type),
-                            subtypeToStr(prev->type, prev->subtype), typeToStr(NUCLEO_TYPE_CONTROL),
-                            controlToStr(NUCLEO_CONTROL_FUNCTION));
                     primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
                     debug3("push to stack %p", nucleotide);
                     backtrace.push(prev);
@@ -178,24 +154,19 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
                 break;
             case NUCLEO_SUPPORT_BLOCK_END:
                 debug3("pop from stack %p", backtrace.top());
-                if (backtrace.size())
-                    backtrace.pop();
-                else
-                    error("Nothing to pop from stack");
+                backtrace.pop();
+                free(nucleotide);
+                nucleotide = NULL;
                 break;
             case NUCLEO_SUPPORT_FILE_START:
                 info("file %s added to stack ", nucleotide->name);
-                if (!root.subvalues.control.child_fst) {
-                    root.subvalues.control.child_fst = nucleotide;
-                } else {
-                    root.subvalues.control.child_lst->sibling = nucleotide;
-                }
-                root.subvalues.control.child_lst = nucleotide;
                 backtrace.push(nucleotide);
                 break;
             case NUCLEO_SUPPORT_FILE_END:
                 info("file %s removed from stack ", top->name);
                 backtrace.pop();
+                free(nucleotide);
+                nucleotide = NULL;
                 break;
             }
             break;
@@ -209,11 +180,89 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
             break;
         }
     }
-    return nucleotide;
+
+    if (nucleotide) {
+        if (!top)
+            top = &root;
+        nucleotide->parent = top;
+        if (createNucleobase(nucleotide, _type, _subtype)) {
+            if (isParam) {
+                if (!top->subvalues.control.param_fst) {
+                    top->subvalues.control.param_fst = top->subvalues.control.param_lst =
+                            nucleotide;
+                } else {
+                    top->subvalues.control.param_lst->sibling = nucleotide;
+                    top->subvalues.control.param_lst = nucleotide;
+                }
+            } else {
+                if (!top->subvalues.control.child_fst) {
+                    top->subvalues.control.child_fst = nucleotide;
+                    top->subvalues.control.child_lst = nucleotide;
+                } else {
+                    top->subvalues.control.child_lst->sibling = nucleotide;
+                    top->subvalues.control.child_lst = nucleotide;
+                }
+            }
+            debug2("%s - parent %s", nucleotide->name, nucleotide->parent->name);
+            return nucleotide;
+        }
+        free(nucleotide);
+    }
+    return NULL;
 }
 
-const char *Transformer::subtypeToStr(nucleotide_type_e type, nucleotide_u subtype) {
-    switch (type) {
+/* NUCLEOBASE FUNCTIONS */
+bool Transformer::createNucleobase(nucleotide_t * nucleo, nucleotide_type_e type,
+        nucleotide_u subtype) {
+    if (nucleo->nucleobase)
+        free(nucleo->nucleobase);
+    nucleo->nucleobase = (nucleobase_u *) malloc(sizeof(nucleobase_u));
+    memset(nucleo->nucleobase, 0, sizeof(nucleobase_u));
+
+    // setting the value of nucleobase
+    if (nucleo->parent && nucleo->parent->nucleobase_count < MAX_NUCLEOBASE_COUNT) {
+        nucleo->nucleobase[0].raw = ((uint64_t) (((uint8_t) type << 5) + subtype.raw) << 56);
+        nucleo->nucleobase[0].raw += nucleo->parent->nucleobase_count;
+    } else {
+        error("unable to create nucleobase, due to length of parents child list");
+        return false;
+    }
+    nucleo->nucleobase_count = 1;
+
+    debug3("Nucleobase encoded %x %x to type %lx", type, subtype.raw, nucleo->nucleobase->raw);
+    return attachNucleobase(nucleo->parent, nucleo);
+}
+
+bool Transformer::attachNucleobase(nucleotide_t *parent, nucleotide_t *child) {
+    size_t size = sizeof(uint64_t) * (parent->nucleobase_count + child->nucleobase_count);
+    nucleobase_u *tmp = (nucleobase_u *) malloc(size);
+    memset(tmp, 0, size);
+    //copy old value of parent and destroy it
+    memcpy(tmp, parent->nucleobase, sizeof(uint64_t) * parent->nucleobase_count);
+    free(parent->nucleobase);
+    parent->nucleobase = tmp;
+
+    //attach value of child to parent
+    tmp = &parent->nucleobase[parent->nucleobase_count];
+    memcpy(tmp, child->nucleobase, sizeof(uint64_t) * child->nucleobase_count);
+
+    parent->nucleobase_count += child->nucleobase_count;
+    debug3("Nucleobase extended to count %lu", parent->nucleobase_count);
+    return true;
+}
+
+void Transformer::printNucleobase(nucleotide_t *nucleo){
+    for ( int i = 0; i < nucleo->nucleobase_count; i ++){
+        info("%lx\t\t\t",nucleo->nucleobase[i].raw);
+    }
+}
+
+const char *Transformer::subtypeToStr(nucleobase_u data) {
+    nucleotide_type_e type = (nucleotide_type_e) (data.raw >> 61);
+    nucleotide_u subtype;
+    subtype.raw = ((data.raw >> 56) & 0x1f);
+    //debug2("type %x subtype %x ", type & 0x7, subtype.raw & 0x1f);
+    switch (type & 0x7) {
     case NUCLEO_TYPE_BASE:
         return baseToStr(subtype.base);
         break;
@@ -242,8 +291,9 @@ const char *Transformer::subtypeToStr(nucleotide_type_e type, nucleotide_u subty
     return "UNDEFINED";
 }
 
-const char *Transformer::typeToStr(nucleotide_type_e type) {
-    switch (type) {
+const char *Transformer::typeToStr(nucleobase_u type) {
+    nucleotide_type_e _type = (nucleotide_type_e) (type.raw >> 61);
+    switch (_type & 0xf) {
     case NUCLEO_TYPE_BASE:
         return "BASE";
         break;
@@ -273,7 +323,7 @@ const char *Transformer::typeToStr(nucleotide_type_e type) {
 }
 
 const char *Transformer::baseToStr(nucleotide_base_e base) {
-    switch (base) {
+    switch (base & 0xf) {
     case NUCLEO_BASE_VOID:
         return "BASE";
         break;
@@ -312,7 +362,7 @@ const char *Transformer::baseToStr(nucleotide_base_e base) {
 }
 
 const char *Transformer::controlToStr(nucleotide_control_e control) {
-    switch (control) {
+    switch (control & 0xf) {
     case NUCLEO_CONTROL_FUNCTION:
         return "FUNCTION";
         break;
@@ -333,7 +383,7 @@ const char *Transformer::controlToStr(nucleotide_control_e control) {
 }
 
 const char *Transformer::loopToStr(nucleotide_loop_e loop) {
-    switch (loop) {
+    switch (loop & 0x7) {
     case NUCLEO_LOOP_DO:
         return "DO WHILE";
         break;
@@ -348,7 +398,7 @@ const char *Transformer::loopToStr(nucleotide_loop_e loop) {
 }
 
 const char *Transformer::jumpToStr(nucleotide_jump_e jump) {
-    switch (jump) {
+    switch (jump & 0x7) {
     case NUCLEO_JUMP_RETURN:
         return "RETURN";
         break;
@@ -366,7 +416,7 @@ const char *Transformer::jumpToStr(nucleotide_jump_e jump) {
 }
 
 const char *Transformer::supportToStr(nucleotide_support_e support) {
-    switch (support) {
+    switch (support & 0xf) {
     case NUCLEO_SUPPORT_BLOCK_START:
         return "BLOCK_START";
         break;
@@ -405,7 +455,7 @@ const char *Transformer::supportToStr(nucleotide_support_e support) {
 }
 
 const char *Transformer::assignsToStr(nucleotide_assigns_e assings) {
-    switch (assings) {
+    switch (assings & 0xf) {
     case NUCLEO_ASSIGNS_IS:
         return "ASSIGNS_IS";
         break;
@@ -450,7 +500,7 @@ const char *Transformer::assignsToStr(nucleotide_assigns_e assings) {
 }
 
 const char *Transformer::compareToStr(nucleotide_compare_e compare) {
-    switch (compare) {
+    switch (compare & 0xf) {
     case NUCLEO_COMPARE_EQUAL:
         return "COMPARE_EQUAL";
         break;
@@ -473,7 +523,7 @@ const char *Transformer::compareToStr(nucleotide_compare_e compare) {
     return "UNDEFINED";
 }
 const char *Transformer::operatorToStr(nucleotide_operator_e oper) {
-    switch (oper) {
+    switch (oper & 0xf) {
     case NUCLEO_OPERATOR_PLUS:
         return "OPERATOR_PLUS";
         break;
@@ -710,7 +760,7 @@ void Transformer::printFiles(bool print) {
     nucleotide_t *it = root.subvalues.control.child_fst;
     while (it) {
         nucleotideToStr(it);
-        if (print){
+        if (print) {
             info("Name\t\tType\t\tSubtype\t\t\t\t");
             printChildren(it, 1);
         }
@@ -720,15 +770,19 @@ void Transformer::printFiles(bool print) {
 
 void Transformer::printChildren(nucleotide_t *parent, size_t depth) {
     depth++;
-    nucleotide_t *it = parent->subvalues.control.child_fst;
-    while (it) {
-        nucleotideToStr(it);
-        printChildren(it, depth);
-        it = it->sibling;
+    if (parent->nucleobase_count > 1) {
+        nucleotide_t *it = parent->subvalues.control.child_fst;
+        info("%lu", depth);
+        while (it) {
+            nucleotideToStr(it);
+            printChildren(it, depth);
+            it = it->sibling;
+        }
     }
 }
 
 void Transformer::nucleotideToStr(nucleotide_t *nucleotide) {
-    info("%s\t\t%s\t\t%s\t\t\t\t", nucleotide->name, typeToStr(nucleotide->type),
-            subtypeToStr(nucleotide->type, nucleotide->subtype));
+    info("%s\t\t%s\t\t%s\t\t\t\t", nucleotide->name, typeToStr(nucleotide->nucleobase[0]),
+            subtypeToStr(nucleotide->nucleobase[0]));
+    printNucleobase(nucleotide);
 }

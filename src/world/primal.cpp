@@ -4,7 +4,7 @@ bool Primal::instanceFlag = false;
 Primal* Primal::self = NULL;
 
 static int compare(const void *left, const void *right) {
-    return (Primal::getInstance())->_compare(left, right);
+    return (Primal::getInstance())->_compare((nucleotide_t *)left, (nucleotide_t *)right);
 }
 
 static void destroy(void *ptr) {
@@ -83,9 +83,15 @@ void Primal::update(nucleotide_t *search, nucleotide_type_e type, uint32_t subty
     avl_node_t *node = avl_search(primal, search);
     if (node) {
         nucleotide_t *update = (nucleotide_t *) node->item;
-        update->type = type;
-        update->subtype.raw = subtype;
+        update->nucleobase[0].raw = ((uint64_t)((type << 5) + subtype ) << 56);
     }
+}
+
+nucleotide_t *Primal::search(nucleotide_t* nucleotide) {
+    avl_node_t *tmp = avl_search(primal, nucleotide);
+    if (tmp)
+        return (nucleotide_t *) (tmp)->item;
+    return NULL;
 }
 
 void Primal::iterate(const avl_node_t *parent, avl_iterate_cb_t *iterate_cb) {
@@ -98,17 +104,15 @@ void Primal::iterate(const avl_node_t *parent, avl_iterate_cb_t *iterate_cb) {
 
 void Primal::_destroy(void *ptr) {
     nucleotide_t *nucleotide = (nucleotide_t *) ptr;
-    if (nucleotide && nucleotide->val != NULL) {
+    if (nucleotide && nucleotide->nucleobase != NULL) {
         debug3("Removing element %p", nucleotide);
-        free(nucleotide);
+        free(nucleotide->nucleobase);
     }
     free(nucleotide);
 }
 
-int Primal::_compare(const void *left, const void *right) {
-    if (((nucleotide_t *) left)->id > ((nucleotide_t *) right)->id)
-        return -1;
-    if (((nucleotide_t *) left)->id < ((nucleotide_t *) right)->id)
-        return 1;
-    return 0;
+int Primal::_compare(const nucleotide_t *left, const nucleotide_t *right) {
+    debug3("comparing %s and %s", left->name, right->name);
+    size_t len = right->nucleobase_count > left->nucleobase_count ? left->nucleobase_count : right->nucleobase_count  ;
+    return memcmp(left->nucleobase, right->nucleobase, len * sizeof(uint64_t));
 }
