@@ -67,119 +67,117 @@ nucleotide_t *Transformer::createNucleotide(const char *type, const char *name, 
 
     nucleotide->sibling = NULL;
 
-    if (val) {
-        switch (_type) {
-        case NUCLEO_TYPE_BASE:
-            nucleotide->subvalues.base.isSet = true;
-            switch (_subtype.base) {
-            case NUCLEO_BASE_STRING:
-                strcpy(nucleotide->subvalues.base.val.str, val);
-                break;
-            case NUCLEO_BASE_VOID:
-                break;
-            case NUCLEO_BASE_SIGNED:
-                sscanf(val, "%d", &nucleotide->subvalues.base.val.sg);
-                break;
-            case NUCLEO_BASE_INT:
-                sscanf(val, "%d", &nucleotide->subvalues.base.val.i);
-                break;
-            case NUCLEO_BASE_CHAR:
-                sscanf(val, "%c", &nucleotide->subvalues.base.val.c);
-                break;
-            case NUCLEO_BASE_FLOAT:
-                sscanf(val, "%f", &nucleotide->subvalues.base.val.f);
-                break;
-            case NUCLEO_BASE_DOUBLE:
-                sscanf(val, "%lf", &nucleotide->subvalues.base.val.d);
-                break;
-            case NUCLEO_BASE_UNSIGNED:
-                sscanf(val, "%u", &nucleotide->subvalues.base.val.usg);
-                break;
-            case NUCLEO_BASE_BOOL:
-                if (strcmp("true", val))
-                    nucleotide->subvalues.base.val.b = true;
-                else
-                    nucleotide->subvalues.base.val.b = false;
-                break;
-            case NUCLEO_BASE_UNDEFINED:
-                nucleotide->subvalues.base.isSet = false;
+	switch (_type) {
+	case NUCLEO_TYPE_BASE:
+		nucleotide->subvalues.base.isSet = true;
+		switch (_subtype.base) {
+		case NUCLEO_BASE_STRING:
+			strcpy(nucleotide->subvalues.base.val.str, val);
+			break;
+		case NUCLEO_BASE_VOID:
+			break;
+		case NUCLEO_BASE_SIGNED:
+			sscanf(val, "%d", &nucleotide->subvalues.base.val.sg);
+			break;
+		case NUCLEO_BASE_INT:
+			sscanf(val, "%d", &nucleotide->subvalues.base.val.i);
+			break;
+		case NUCLEO_BASE_CHAR:
+			sscanf(val, "%c", &nucleotide->subvalues.base.val.c);
+			break;
+		case NUCLEO_BASE_FLOAT:
+			sscanf(val, "%f", &nucleotide->subvalues.base.val.f);
+			break;
+		case NUCLEO_BASE_DOUBLE:
+			sscanf(val, "%lf", &nucleotide->subvalues.base.val.d);
+			break;
+		case NUCLEO_BASE_UNSIGNED:
+			sscanf(val, "%u", &nucleotide->subvalues.base.val.usg);
+			break;
+		case NUCLEO_BASE_BOOL:
+			if (strcmp("true", val))
+				nucleotide->subvalues.base.val.b = true;
+			else
+				nucleotide->subvalues.base.val.b = false;
+			break;
+		case NUCLEO_BASE_UNDEFINED:
+			nucleotide->subvalues.base.isSet = false;
 
-            }
-            break;
-        case NUCLEO_TYPE_CONTROL:
-            switch (_subtype.control) {
-            case NUCLEO_CONTROL_FUNCTION:
-                break;
-            }
-            break;
-        case NUCLEO_TYPE_LOOP:
-            switch (_subtype.loop) {
-            case NUCLEO_LOOP_DO:
-            case NUCLEO_LOOP_WHILE:
-            case NUCLEO_LOOP_FOR:
-                break;
-            }
-            break;
-        case NUCLEO_TYPE_JUMP:
-            switch (_subtype.jump) {
-            case NUCLEO_JUMP_RETURN:
-            case NUCLEO_JUMP_BREAK:
-            case NUCLEO_JUMP_CONTINUE:
-            case NUCLEO_JUMP_GOTO:
-                nucleotide->subvalues.jump.jump = NULL; // search for it!
-                break;
-            }
-            break;
-        case NUCLEO_TYPE_SUPPORT:
-            switch (_subtype.support) {
-            case NUCLEO_SUPPORT_FUNC_PARAM:
-                isParam = true;
-                if (prev && top != prev) {
-                    primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
-                    debug3("push to stack %p", nucleotide);
-                    backtrace.push(prev);
-                    free(nucleotide);
-                    nucleotide = NULL;
-                }
-                break;
-            case NUCLEO_SUPPORT_BLOCK_START:
-                isParam = false;
-                if (prev && top != prev) {
-                    primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
-                    debug3("push to stack %p", nucleotide);
-                    backtrace.push(prev);
-                    free(nucleotide);
-                    nucleotide = NULL;
-                }
-                break;
-            case NUCLEO_SUPPORT_BLOCK_END:
-                debug3("pop from stack %p", backtrace.top());
-                backtrace.pop();
-                free(nucleotide);
-                nucleotide = NULL;
-                break;
-            case NUCLEO_SUPPORT_FILE_START:
-                info("file %s added to stack ", nucleotide->name);
-                backtrace.push(nucleotide);
-                break;
-            case NUCLEO_SUPPORT_FILE_END:
-                info("file %s removed from stack ", top->name);
-                backtrace.pop();
-                free(nucleotide);
-                nucleotide = NULL;
-                break;
-            }
-            break;
-        case NUCLEO_TYPE_ASSIGNS:
-            break;
-        case NUCLEO_TYPE_COMPARE:
-            break;
-        case NUCLEO_TYPE_OPERATOR:
-            break;
-        case NUCLEO_TYPE_UNDEFINED:
-            break;
-        }
-    }
+		}
+		break;
+	case NUCLEO_TYPE_CONTROL:
+		switch (_subtype.control) {
+		case NUCLEO_CONTROL_FUNCTION:
+			break;
+		}
+		break;
+	case NUCLEO_TYPE_LOOP:
+		switch (_subtype.loop) {
+		case NUCLEO_LOOP_DO:
+		case NUCLEO_LOOP_WHILE:
+		case NUCLEO_LOOP_FOR:
+			break;
+		}
+		break;
+	case NUCLEO_TYPE_JUMP:
+		switch (_subtype.jump) {
+		case NUCLEO_JUMP_RETURN:
+		case NUCLEO_JUMP_BREAK:
+		case NUCLEO_JUMP_CONTINUE:
+		case NUCLEO_JUMP_GOTO:
+			nucleotide->subvalues.jump.jump = NULL; // search for it!
+			break;
+		}
+		break;
+	case NUCLEO_TYPE_SUPPORT:
+		switch (_subtype.support) {
+		case NUCLEO_SUPPORT_FUNC_PARAM:
+			isParam = true;
+			if (prev && top != prev) {
+				primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
+				debug3("push to stack %p", nucleotide);
+				backtrace.push(prev);
+				free(nucleotide);
+				nucleotide = NULL;
+			}
+			break;
+		case NUCLEO_SUPPORT_BLOCK_START:
+			isParam = false;
+			if (prev && top != prev) {
+				primal->update(prev, NUCLEO_TYPE_CONTROL, NUCLEO_CONTROL_FUNCTION);
+				debug3("push to stack %p", nucleotide);
+				backtrace.push(prev);
+				free(nucleotide);
+				nucleotide = NULL;
+			}
+			break;
+		case NUCLEO_SUPPORT_BLOCK_END:
+			debug3("pop from stack %p", backtrace.top());
+			backtrace.pop();
+			free(nucleotide);
+			nucleotide = NULL;
+			break;
+		case NUCLEO_SUPPORT_FILE_START:
+			info("file %s added to stack ", nucleotide->name);
+			backtrace.push(nucleotide);
+			break;
+		case NUCLEO_SUPPORT_FILE_END:
+			info("file %s removed from stack ", top->name);
+			backtrace.pop();
+			free(nucleotide);
+			nucleotide = NULL;
+			break;
+		}
+		break;
+	case NUCLEO_TYPE_ASSIGNS:
+		break;
+	case NUCLEO_TYPE_COMPARE:
+		break;
+	case NUCLEO_TYPE_OPERATOR:
+		break;
+	case NUCLEO_TYPE_UNDEFINED:
+		break;
+	}
 
     if (nucleotide) {
         if (!top)
